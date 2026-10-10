@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="description" content="一些按日期留下的记录。看看最近在忙什么，也翻翻过去的便签。">
+    <title>正在做 · EVARA'S BLOG</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="blog-header">
+        <a class="site-brand" href="/"><span class="brand-mark" aria-hidden="true">//</span><span>EVARA'S BLOG</span></a>
+        <nav class="site-nav" aria-label="主导航">
+          <a href="/">首页</a>
+          <a href="/now" aria-current="page">正在做</a>
+          <a href="/me">个人</a>
+        </nav>
+      </header>
+      <main id="main-content">
+      <section class="current-section" aria-labelledby="current-heading">
+        <div class="section-heading">
+          <span class="section-index">01 / NOW</span>
+          <h2 id="current-heading">Doing</h2>
+        </div>
+        <div class="current-card" aria-live="polite">
+          <div class="current-meta">
+            <span class="current-label">最新便签</span>
+            <time id="current-date"></time>
+          </div>
+          <p id="current-content" class="note-text">正在读取…</p>
+          <button id="jump-current" class="text-button" type="button" hidden>在日历中查看 <span aria-hidden="true">↗</span></button>
+        </div>
+      </section>
+
+      <section class="archive-section" aria-labelledby="archive-heading">
+        <div class="section-heading archive-heading">
+          <span class="section-index">02 / ARCHIVE</span>
+          <h2 id="archive-heading">Calendar</h2>
+        </div>
+        <div class="archive-grid">
+          <div class="calendar-panel">
+            <div class="month-toolbar">
+              <button id="previous-month" class="icon-button" type="button" aria-label="上个月">←</button>
+              <h3 id="month-label" aria-live="polite"></h3>
+              <button id="next-month" class="icon-button" type="button" aria-label="下个月">→</button>
+            </div>
+            <div class="weekdays" aria-hidden="true">
+              <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+            </div>
+            <div id="calendar" class="calendar" role="grid" aria-label="便签日历"></div>
+            <p class="calendar-hint"><span class="hint-mark" aria-hidden="true"></span> 带边框的日期有便签</p>
+          </div>
+          <div class="entries-panel">
+            <div class="entries-heading">
+              <h3>这个月的便签</h3>
+              <span id="entry-count" class="count">—</span>
+            </div>
+            <div id="entries" class="entries" aria-live="polite"><p class="empty-message">正在读取…</p></div>
+            <nav id="note-pagination" class="note-pagination" aria-label="便签翻页" hidden>
+              <button id="previous-note" type="button" aria-controls="entries">← 上一页</button>
+              <span id="note-page" aria-live="polite"></span>
+              <button id="next-note" type="button" aria-controls="entries">下一页 →</button>
+            </nav>
+          </div>
+        </div>
+      </section>
+
+      </main>
+      <!-- SITE_FOOTER -->
+    </div>
+  </body>
+</html>
