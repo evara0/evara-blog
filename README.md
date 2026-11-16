@@ -2,11 +2,12 @@
 
 使用 FastAPI 和原生 HTML/CSS/JavaScript 的轻量个人博客，无数据库、在线编辑或前端编译步骤。
 
-- `/`：主页，展示“正在做”栏目入口。
+- `/`：主页，展示最新八篇技术文章和“正在做”栏目入口。
+- `/articles`：全部已发布文章，按日期倒序；`/articles/<slug>` 阅读正文。
 - `/now`：最近便签、月历与逐条翻页。
 - `/me`：可沿纵深探索的个人宇宙，包含动态文字、漂浮物件和个人介绍。
 
-三页导航互通。首页与正在做使用黑白线条与留白；个人页使用独立的宇宙视觉。字体资源 Quicksand 和 OFL 许可证位于 `app/static/fonts/`，中文使用系统字体回退。
+页面导航互通。首页、文章页与正在做使用黑白线条与留白；个人页使用独立的宇宙视觉。字体资源 Quicksand 和 OFL 许可证位于 `app/static/fonts/`，中文使用系统字体回退。
 
 ## 环境与启动
 
@@ -20,6 +21,28 @@ uv run --frozen uvicorn app.main:app --host 127.0.0.1 --port 2526
 访问 [主页](http://127.0.0.1:2526/)、[正在做](http://127.0.0.1:2526/now)和[个人页](http://127.0.0.1:2526/me)。Ctrl+C 停止，重新执行启动命令即可重启。开发时可添加 `--reload` 自动重载 Python 代码。只需要应用依赖时可用 `uv sync --no-dev --frozen` 和 `uv run --no-dev --frozen`。
 
 Node.js 只用于个人页行为测试，不是网站运行依赖，无需 npm 安装。
+
+## 写文章
+
+每篇文章放在 `articles/<slug>/index.md`，其中 slug 使用小写英文字母、数字和连字符，例如 `articles/hello-python/index.md`。可复制 `examples/article/` 作为起点；示例不会自动发布。文件使用 UTF-8，开头为 YAML front matter：
+
+```markdown
+---
+title: "文章标题"
+date: 2026-01-01
+summary: "文章摘要"
+tags: [Python, 笔记]
+draft: false
+---
+
+## 第一节
+
+正文与 ![图片说明](image.png)
+```
+
+`title`、`date`、`summary`、`tags` 必填；标题与摘要为非空字符串，日期为 `YYYY-MM-DD`，标签为字符串列表（可以为空）。`draft` 可省略，默认为 `false`，设为 `true` 时不公开。日期晚于服务器本地当天、元数据无效或文件无法读取的文章不会出现在列表，正文和图片也返回 404；无效条目会在服务日志中提示。相同日期按 slug 排序。保存或新增文件后刷新即可，无需重启。
+
+正文支持 Markdown、表格、代码块和自动标题目录，原始 HTML 不执行。图片放在同一文章目录或其子目录，使用相对路径；支持 PNG、JPEG、GIF、WebP、AVIF，不开放 SVG、其他文件或目录外路径。正文无需 JavaScript。`articles/` 默认被 Git 忽略，实际文章和配图由使用者维护，不随共享源码提交；要备份或发布内容需自行安排。
 
 ## 写便签与签名
 
@@ -41,15 +64,17 @@ notes/
 
 | 内容 | 文件 |
 | --- | --- |
-| 主页与正在做 | `app/static/index.html`、`now.html` |
+| 主页、文章列表与正文 | `app/templates/` |
+| 正在做页面 | `app/static/now.html` |
 | 公共样式与便签交互 | `app/static/style.css`、`app.js` |
 | 个人文案 | `app/static/me.html` 中的 `fallback-content`，弹窗复用同一内容 |
 | 宇宙绘制与相机 | `app/static/me-scene.js` |
 | 个人页布局与控制 | `app/static/me.css`、`me.js` |
 | 路由与签名 | `app/main.py` |
+| 文章读取与渲染 | `app/articles.py` |
 | 便签读取 | `app/notes.py` |
 
-静态文件保存后刷新即可，缓存时强制刷新；后端代码更新需要重启或开发模式自动重载。修改站名时同步三个 HTML 的导航和标题。
+静态文件和模板保存后刷新即可，缓存时强制刷新；后端代码更新需要重启或开发模式自动重载。修改站名时同步模板与现有静态页面的导航和标题。
 
 ## 宇宙探索操作
 
@@ -68,7 +93,7 @@ uv run --frozen python -m unittest discover -s tests -v
 node --test tests/test_personal_interactions.cjs
 ```
 
-共享应用测试覆盖页面路由、导航、签名转义、便签 API 与筛选，以及场景投影、暂停、纵深移动、输入、弹窗和探索设置。实际运行内容不会因测试被改写。
+共享应用测试覆盖文章发布与资源边界、Markdown 渲染、页面路由、导航、签名转义、便签 API 与筛选，以及场景投影、暂停、纵深移动、输入、弹窗和探索设置。实际运行内容不会因测试被改写。
 
 ## 规划与 Git 边界
 

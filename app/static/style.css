@@ -103,6 +103,34 @@ button.calendar-day:hover, button.calendar-day:focus-visible, button.calendar-da
 .site-footer { display: flex; justify-content: space-between; gap: 20px; border-top: 1.5px solid #111; margin-top: 78px; padding: 20px 0 28px; color: #555; letter-spacing: .03em; }
 
 .home-footer { margin-top: 0; border-top: 0; padding-top: 28px; }
+.articles-section { padding-bottom: 40px; border-bottom: 1.5px solid #111; }
+.article-list { border-top: 1px solid #111; }
+.article-row { display: grid; grid-template-columns: 118px minmax(0, 1fr); gap: 22px; padding: 27px 0; border-bottom: 1px solid #d5d5d5; }
+.article-row time, .article-header time { font: 600 12px/1.6 ui-monospace, monospace; color: #555; }
+.article-row h2 { font-size: 22px; line-height: 1.4; overflow-wrap: anywhere; }
+.article-row h2 a { text-decoration: none; }
+.article-row h2 a:hover { text-decoration: underline; text-underline-offset: 5px; }
+.article-row p, .article-header p { color: #555; line-height: 1.8; overflow-wrap: anywhere; }
+.article-row p { margin: 9px 0 12px; }
+.article-tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.article-tags li { border: 1px solid #ccc; padding: 3px 8px; font-size: 12px; overflow-wrap: anywhere; }
+.all-articles { margin-top: 26px; }
+.article-detail { max-width: 820px; margin: 0 auto; padding-top: 45px; min-width: 0; }
+.back-link { font-size: 14px; text-underline-offset: 4px; }
+.article-header { padding: 40px 0 30px; border-bottom: 1.5px solid #111; }
+.article-header h1 { margin-top: 16px; line-height: 1.25; overflow-wrap: anywhere; }
+.article-toc { margin: 35px 0; padding: 22px 25px; border: 1px solid #111; }
+.article-toc h2 { font-size: 18px; }
+.article-toc ol { list-style: none; padding: 0; margin: 14px 0 0; line-height: 1.8; }
+.article-toc li { overflow-wrap: anywhere; }
+.article-toc li:not(.toc-level-1):not(.toc-level-2) { padding-left: 1em; }
+.article-body { line-height: 1.9; overflow-wrap: anywhere; }
+.article-body h1, .article-body h2, .article-body h3, .article-body h4, .article-body h5, .article-body h6 { margin: 1.8em 0 .6em; line-height: 1.4; scroll-margin-top: 20px; }
+.article-body img { max-width: 100%; height: auto; }
+.article-body pre { overflow-x: auto; padding: 20px; background: #f4f4f4; line-height: 1.6; }
+.article-body table { display: block; width: max-content; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+.article-body th, .article-body td { padding: 8px 12px; border: 1px solid #bbb; }
+.article-body blockquote { margin: 1em 0; padding-left: 18px; border-left: 3px solid #111; color: #555; }
 .site-signature { margin: 0; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 400 16px/1.8 "Quicksand", "YouYuan", "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
 button:focus-visible, a:focus-visible { outline: 2px solid #111; outline-offset: 4px; }
 [hidden] { display: none !important; }
@@ -112,6 +140,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid #111; outline-offset:
   .blog-header { min-height: 100px; gap: 18px; }
   .site-brand { gap: 12px; font-size: 16px; }
   .site-nav { gap: 20px; }
+  .site-nav { flex-wrap: wrap; }
+  .article-row { grid-template-columns: 1fr; gap: 8px; }
   .brand-mark { width: 46px; height: 46px; flex: none; }
   .home-column { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 28px 0 34px; }
   .home-column .section-index { margin-bottom: 0; }

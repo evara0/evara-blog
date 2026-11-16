@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}文章 · EVARA'S BLOG{% endblock %}
+{% block content %}
+<section class="articles-section" aria-labelledby="articles-heading">
+  <div class="section-heading"><span class="section-index">ARCHIVE</span><h1 id="articles-heading">全部文章</h1></div>
+  {% include "_article_list.html" %}
+</section>
+{% endblock %}

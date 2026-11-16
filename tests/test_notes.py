@@ -78,7 +78,7 @@ class BlogPageTests(unittest.TestCase):
                     document = PageElements(response.text)
                     self.assertIn(required_id, document.ids)
                     page_links = {link["href"] for link in document.links if not link["href"].startswith("#")}
-                    self.assertEqual(page_links, {"/", "/now", "/me"})
+                    self.assertEqual(page_links, {"/", "/now", "/me", "/articles"} if path == "/" else {"/", "/now", "/me"})
                     current_links = [link for link in document.links if link.get("aria-current") == "page"]
                     self.assertEqual(len(current_links), 1)
                     self.assertEqual(current_links[0]["href"], path)

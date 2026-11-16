@@ -13,6 +13,7 @@ htmlcov/
 .idea/
 .vscode/
 notes/*.txt
+/articles/
 /signature.txt
 dist/
 backups/
