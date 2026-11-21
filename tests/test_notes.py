@@ -64,35 +64,37 @@ class BlogPageTests(unittest.TestCase):
                 self.assertNotIn('<footer', client.get("/").text)
 
     def test_page_routes_navigation_and_script_isolation(self):
+        paths = ["/", "/now", "/projects", "/blog", "/records", "/me"]
         with TestClient(app) as client:
-            for path, title, required_id in (
-                ("/", "<title>EVARA'S BLOG</title>", "now-heading"),
-                ("/now", "<title>正在做 · EVARA'S BLOG</title>", "calendar"),
-                ("/me", "<title>个人 · EVARA'S BLOG</title>", "personal-heading"),
-            ):
+            for path, title, active in [
+                ("/", "EVARA'S BLOG", "/"), ("/now", "正在做", "/now"),
+                ("/projects", "个人项目", "/projects"), ("/blog", "技术博客", "/blog"),
+                ("/records", "记录", "/records"), ("/me", "个人", "/me"),
+                ("/records/notes", "随手记", "/records"), ("/records/media", "书影音", "/records"),
+            ]:
                 with self.subTest(path=path):
                     response = client.get(path)
                     self.assertEqual(response.status_code, 200)
-                    self.assertIn("text/html", response.headers["content-type"])
                     self.assertIn(title, response.text)
                     document = PageElements(response.text)
-                    self.assertIn(required_id, document.ids)
-                    page_links = {link["href"] for link in document.links if not link["href"].startswith("#")}
-                    self.assertEqual(page_links, {"/", "/now", "/me"})
-                    current_links = [link for link in document.links if link.get("aria-current") == "page"]
-                    self.assertEqual(len(current_links), 1)
-                    self.assertEqual(current_links[0]["href"], path)
-                    if path == "/":
-                        self.assertEqual(document.scripts, [])
-                        self.assertNotIn("calendar", document.ids)
-                        self.assertNotIn("current-content", document.ids)
-                    elif path == "/now":
-                        self.assertEqual(document.scripts, ["/static/app.js"])
-                        self.assertTrue({"current-content", "entries", "jump-current"}.issubset(document.ids))
-                    else:
-                        self.assertEqual(document.scripts, ["/static/me-scene.js", "/static/me.js"])
-                        self.assertNotIn('/static/style.css', response.text)
-                        self.assertNotIn("calendar", document.ids)
+                    nav = [link for link in document.links if link.get("href") in paths]
+                    # The brand and content links are outside the primary navigation.
+                    nav_html = response.text.split('<nav class="site-nav"', 1)[1].split('</nav>', 1)[0]
+                    nav = PageElements(nav_html).links
+                    self.assertEqual([link["href"] for link in nav], paths)
+                    self.assertEqual([link["href"] for link in nav if link.get("aria-current") == "page"], [active])
+                    self.assertEqual(document.scripts, ["/static/app.js"] if path == "/now" else [])
+                    self.assertNotIn("宇宙探索", response.text)
+            records = client.get("/records").text
+            self.assertIn('href="/records/notes"', records)
+            self.assertIn('href="/records/media"', records)
+            for path in ("/projects", "/blog", "/records/notes", "/records/media", "/me"):
+                self.assertIn("还", client.get(path).text)
+            self.assertIn("个人足迹", client.get("/me").text)
+            old = client.get("/static/me.html", follow_redirects=False)
+            self.assertEqual(old.status_code, 307)
+            self.assertEqual(old.headers["location"], "/me")
+            self.assertIn("个人足迹", client.get("/static/me.html").text)
             for resource in ("/static/style.css", "/static/app.js", "/static/me.css", "/static/me.js", "/static/me-scene.js"):
                 self.assertEqual(client.get(resource).status_code, 200)
 

@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.notes import current_note, monthly_notes
@@ -21,6 +21,11 @@ SIGNATURE_FILE = BASE_DIR / "signature.txt"
 MONTH_PATTERN = re.compile(r"^(\d{4})-(0[1-9]|1[0-2])$")
 
 app = FastAPI(title="EVARA'S BLOG", docs_url=None, redoc_url=None)
+@app.get("/static/me.html", include_in_schema=False)
+def old_personal_page() -> RedirectResponse:
+    return RedirectResponse("/me", status_code=307, headers={"Cache-Control": "no-store"})
+
+
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -50,6 +55,31 @@ def now() -> HTMLResponse:
 @app.get("/me", include_in_schema=False)
 def me() -> HTMLResponse:
     return render_page("me.html")
+
+
+@app.get("/projects", include_in_schema=False)
+def projects() -> HTMLResponse:
+    return render_page("projects.html")
+
+
+@app.get("/blog", include_in_schema=False)
+def blog() -> HTMLResponse:
+    return render_page("blog.html")
+
+
+@app.get("/records", include_in_schema=False)
+def records() -> HTMLResponse:
+    return render_page("records.html")
+
+
+@app.get("/records/notes", include_in_schema=False)
+def record_notes() -> HTMLResponse:
+    return render_page("record-notes.html")
+
+
+@app.get("/records/media", include_in_schema=False)
+def record_media() -> HTMLResponse:
+    return render_page("record-media.html")
 
 
 @app.get("/api/current")

@@ -4,9 +4,12 @@
 
 - `/`：主页，展示“正在做”栏目入口。
 - `/now`：最近便签、月历与逐条翻页。
-- `/me`：可沿纵深探索的个人宇宙，包含动态文字、漂浮物件和个人介绍。
+- `/projects`：个人项目。
+- `/blog`：技术博客。
+- `/records`：记录，包含 `/records/notes` 随手记和 `/records/media` 书影音。
+- `/me`：个人简介和个人足迹。
 
-三页导航互通。首页与正在做使用黑白线条与留白；个人页使用独立的宇宙视觉。字体资源 Quicksand 和 OFL 许可证位于 `app/static/fonts/`，中文使用系统字体回退。
+六项导航互通，各页沿用黑白线条与留白。字体资源 Quicksand 和 OFL 许可证位于 `app/static/fonts/`，中文使用系统字体回退。
 
 ## 环境与启动
 
@@ -19,7 +22,7 @@ uv run --frozen uvicorn app.main:app --host 127.0.0.1 --port 2526
 
 访问 [主页](http://127.0.0.1:2526/)、[正在做](http://127.0.0.1:2526/now)和[个人页](http://127.0.0.1:2526/me)。Ctrl+C 停止，重新执行启动命令即可重启。开发时可添加 `--reload` 自动重载 Python 代码。只需要应用依赖时可用 `uv sync --no-dev --frozen` 和 `uv run --no-dev --frozen`。
 
-Node.js 只用于个人页行为测试，不是网站运行依赖，无需 npm 安装。
+Node.js 只用于保留的旧宇宙行为测试，不是网站运行依赖，无需 npm 安装。
 
 ## 写便签与签名
 
@@ -33,7 +36,7 @@ notes/
 
 保存后刷新即可。页面展示不晚于运行环境当天的最近便签；未来日期可出现在月历，但不会提前成为最新内容。月度便签从新到旧，每页一条；按钮、日期点击和最新便签定位可以切换当前页。文件文本作为文字展示，保留换行。
 
-三页页尾请求时读取根目录 `signature.txt`，支持 UTF-8 BOM、多行与纯文本 HTML 转义。首次可复制 `signature.example.txt` 并编辑，保存后刷新生效；缺失、空白、不可读或编码错误时省略页尾。
+各页页尾请求时读取根目录 `signature.txt`，支持 UTF-8 BOM、多行与纯文本 HTML 转义。首次可复制 `signature.example.txt` 并编辑，保存后刷新生效；缺失、空白、不可读或编码错误时省略页尾。
 
 实际便签和签名由使用者单独维护，默认不进入 Git。运行时没有写入 API或内容自动同步机制。
 
@@ -43,21 +46,16 @@ notes/
 | --- | --- |
 | 主页与正在做 | `app/static/index.html`、`now.html` |
 | 公共样式与便签交互 | `app/static/style.css`、`app.js` |
-| 个人文案 | `app/static/me.html` 中的 `fallback-content`，弹窗复用同一内容 |
-| 宇宙绘制与相机 | `app/static/me-scene.js` |
-| 个人页布局与控制 | `app/static/me.css`、`me.js` |
+| 栏目与个人内容 | `app/static/projects.html`、`blog.html`、`records.html`、`record-notes.html`、`record-media.html`、`me.html` |
+| 保留的旧宇宙页面 | `app/legacy/me.html`；相关资源 `app/static/me.css`、`me.js`、`me-scene.js` |
 | 路由与签名 | `app/main.py` |
 | 便签读取 | `app/notes.py` |
 
-静态文件保存后刷新即可，缓存时强制刷新；后端代码更新需要重启或开发模式自动重载。修改站名时同步三个 HTML 的导航和标题。
+静态文件保存后刷新即可，缓存时强制刷新；后端代码更新需要重启或开发模式自动重载。修改导航或站名时同步各页面的导航和标题。
 
-## 宇宙探索操作
+## 旧个人页
 
-拖动背景调整视角；滚轮、前后按钮和 W/S 沿空间行进，星域入口直接抵达，返回起点恢复位置和方向。附近物件与底部记录入口可打开介绍，Escape 关闭并返回焦点。
-
-航程条以 0.5% 定位；设置调节速度与观察灵敏度，只影响当前页。Shift 将观察和行进操作缩小到五分之一，停止按钮或 Escape 取消飞行，主内容处空格暂停动画。
-
-普通模式平滑抵达；暂停和减少动态效果时主动探索仍可用。内容窗口、后台隐藏及相应聚焦状态停止自主运动。Canvas 或脚本不可用时可以阅读静态内容，不自动播放音乐。
+宇宙探索已关闭。旧 `/me` 现为个人页，公开别名 `/static/me.html` 临时重定向到 `/me`；旧 HTML 保存在非公开的 `app/legacy/me.html`，相关资源保留供将来恢复。
 
 ## 测试
 
@@ -68,7 +66,7 @@ uv run --frozen python -m unittest discover -s tests -v
 node --test tests/test_personal_interactions.cjs
 ```
 
-共享应用测试覆盖页面路由、导航、签名转义、便签 API 与筛选，以及场景投影、暂停、纵深移动、输入、弹窗和探索设置。实际运行内容不会因测试被改写。
+共享应用测试覆盖页面路由、导航、签名转义、便签 API 与筛选；旧宇宙源码的独立测试仍可运行。实际运行内容不会因测试被改写。
 
 ## 规划与 Git 边界
 

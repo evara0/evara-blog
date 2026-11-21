@@ -133,3 +133,23 @@ button:focus-visible, a:focus-visible { outline: 2px solid #111; outline-offset:
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+
+/* Column and personal pages */
+.site-nav { flex-wrap: wrap; column-gap: 24px; row-gap: 4px; }
+.content-page, .timeline-section { padding-bottom: 0; }
+.content-panel { border-top: 1.5px solid #111; border-bottom: 1px solid #111; padding: 24px 0; }
+.content-panel .empty-message { margin: 0; }
+.page-intro, .about-copy p { color: #555; line-height: 1.9; max-width: 720px; }
+.about-copy h2 { margin-bottom: 20px; }
+.record-list { border-top: 1.5px solid #111; }
+.record-list a { display: flex; justify-content: space-between; gap: 20px; padding: 24px 0; border-bottom: 1px solid #111; text-decoration: none; }
+.record-list a:hover strong { text-decoration: underline; }
+.record-list small, .record-list strong, .record-list a span span { display: block; }
+.record-list small { font: 600 11px/1.5 ui-monospace, monospace; letter-spacing: .12em; }
+.record-list strong { font-size: 21px; margin: 9px 0; }
+.record-list a span span { color: #555; font-size: 14px; }
+.back-link { margin-top: 26px; }
+@media (max-width: 720px) {
+  .site-nav { width: 100%; column-gap: 20px; row-gap: 2px; }
+  .site-nav a { white-space: nowrap; }
+}

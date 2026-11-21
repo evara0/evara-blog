@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#060511">
+    <meta name="description" content="EVARA 的私人宇宙。文字、声音和构想，在这里缓慢运行。">
+    <title>个人 · EVARA'S BLOG</title>
+    <link rel="stylesheet" href="/static/me.css">
+    <script src="/static/me-scene.js" defer></script>
+    <script src="/static/me.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+    <div class="cosmos-shell">
+      <div class="cosmos-backdrop" aria-hidden="true"></div>
+      <canvas id="universe" aria-hidden="true"></canvas>
+      <div class="cosmos-grain" aria-hidden="true"></div>
+      <header class="cosmos-header">
+        <a class="cosmos-brand" href="/" aria-label="EVARA'S BLOG 首页"><span class="brand-orbit" aria-hidden="true">✳</span><span>EVARA<small>PERSONAL UNIVERSE</small></span></a>
+        <nav class="cosmos-nav" aria-label="主导航"><a href="/">首页</a><a href="/now">正在做</a><a href="/me" aria-current="page">个人 <span aria-hidden="true">↗</span></a></nav>
+      </header>
+
+      <main id="main-content" tabindex="-1">
+        <div class="universe-intro"><p class="eyebrow"><span></span> EVARA'S UNIVERSE / 个人星图</p><h1 id="personal-heading">一个仍在生成的<span>宇宙。</span></h1><p class="intro-copy">沿着文字、声音和构想，进入我的个人星图。</p></div>
+        <div class="scene-caption" aria-hidden="true"><span id="zone-caption-title">EVARA / TYPE IN ORBIT</span><span id="zone-caption-text">从这里，向未知出发。</span></div>
+        <div class="journey-hud" hidden><div class="hud-heading"><span>探索位置</span><span id="journey-percent">0%</span></div><span id="journey-region">01 / 起点</span><label class="screen-reader-help" for="journey-scrubber">精确调整宇宙航程</label><input id="journey-scrubber" type="range" min="0" max="100" step="0.5" value="0" aria-describedby="journey-phase"><progress id="journey-progress" max="6400" value="0" class="screen-reader-help" aria-label="宇宙探索进度"></progress><span id="journey-phase">位置已就绪</span></div>
+
+        <div class="floating-nodes" hidden aria-label="宇宙中的个人内容">
+          <button class="space-node" data-panel="about-panel" data-object="0" type="button" aria-haspopup="dialog" aria-label="阅读个人概览" title="阅读个人概览"><span class="node-point"></span><span>个人概览<small>01 / READ THE OBSERVER ↗</small></span></button>
+          <button class="space-node" data-panel="systems-panel" data-object="1" type="button" aria-haspopup="dialog" aria-label="阅读工具与流程" title="阅读工具与流程"><span class="node-point"></span><span>工具与流程<small>02 / READ THE SYSTEMS ↗</small></span></button>
+          <button class="space-node" data-panel="sound-panel" data-object="2" type="button" aria-haspopup="dialog" aria-label="阅读音乐探索" title="阅读音乐探索"><span class="node-point"></span><span>音乐探索<small>03 / READ THE FREQUENCIES ↗</small></span></button>
+        </div>
+
+        <section class="fallback-content" aria-label="个人内容">
+          <article id="about-source"><span class="panel-index">01 / THE OBSERVER · 个人概览</span><h2>你好，我是 EVARA。</h2><p class="content-lead">构造工具，也探索声音。<br>这是我的一小片个人宇宙。</p><div class="interest-tags"><span>工具构造</span><span>工作系统</span><span>音乐探索</span></div><div class="content-section"><h3>这里有什么</h3><p>正在形成的想法、动手尝试的过程，还有沿途留下的记录。比起一个固定标签，我更愿意用正在做的事介绍自己。</p></div><div class="content-section"><h3>两条探索路径</h3><p>一条走向工具与流程：让零散步骤连接起来。另一条走向声音：在音程和旋律片段里寻找关系。</p></div><p class="panel-note">保持好奇，也给未知留一点位置。</p></article>
+          <article id="systems-source"><span class="panel-index">02 / MADE OF IDEAS · 工具与流程</span><h2>把想法，变成可用的工具。</h2><p class="content-lead">从「如果能这样就好了」，<br>到可以实际使用的一点改变。</p><div class="interest-tags"><span>自动化</span><span>流程连接</span><span>个人工作系统</span></div><div class="content-section"><h3>关注什么</h3><p>重复步骤如何交给流程，零散信息如何形成系统，以及小工具怎样改善日常工作方式。</p></div><div class="content-section"><h3>留下什么</h3><p>把探索过程按日期记录下来。想法会调整，工具也会继续生长，正在做的事是最具体的介绍。</p></div><a class="panel-link" href="/now">阅读正在做的记录 <span>↗</span></a></article>
+          <article id="sound-source"><span class="panel-index">03 / PRIVATE FREQUENCIES · 音乐探索</span><h2>在声音里，辨认关系。</h2><p class="content-lead">音程的距离，旋律的走向，<br>以及一段音乐唤起另一段音乐的瞬间。</p><div class="interest-tags"><span>扒谱</span><span>音程</span><span>旋律片段</span></div><div class="content-section"><h3>正在探索</h3><p>感受音程之间的关系，辨认旋律中的相似片段，想一想这些联系能否借助工具被整理和观察。</p></div><div class="content-section"><h3>听见之后</h3><p>不急着给每次感受一个答案。先听、比较、留下线索，再继续寻找声音之间的引力。</p></div><p class="panel-note">LISTEN. FIND THE CONNECTIONS.</p></article>
+        </section>
+
+        <div class="cosmos-dock" hidden>
+          <div class="dock-heading"><span class="signal-light"></span> 阅读我的记录 / READ</div>
+          <div class="dock-links" aria-label="个人内容入口"><button type="button" data-panel="about-panel" aria-haspopup="dialog">个人概览</button><button type="button" data-panel="systems-panel" aria-haspopup="dialog">工具与流程</button><button type="button" data-panel="sound-panel" aria-haspopup="dialog">音乐探索</button></div>
+        </div>
+        <div class="journey-routes" hidden aria-label="前往星域"><span>前往星域 / EXPLORE</span><div><button type="button" data-travel="0" aria-label="前往起点" aria-pressed="true">起点</button><button type="button" data-travel="1900" aria-label="前往构造星域" aria-pressed="false">构造</button><button type="button" data-travel="3800" aria-label="前往声音星域" aria-pressed="false">声音</button><button type="button" data-travel="5700" aria-label="前往未知星域" aria-pressed="false">未知</button></div></div>
+        <div class="scene-help" hidden><span class="drag-glyph" aria-hidden="true">⤧</span><p>拖动观察 · 滚轮探索<br><span>按住 Shift 微调，Esc 停止航行</span></p></div>
+        <div class="cosmos-controls" hidden aria-label="宇宙控制"><button id="zoom-in" type="button" aria-label="向前探索" title="向前探索 · W">↑</button><button id="zoom-out" type="button" aria-label="向后退回" title="向后退回 · S">↓</button><button id="stop-travel" type="button" aria-label="停止航行" title="停止航行 · Esc">□</button><span class="control-divider"></span><button id="reset-view" type="button" aria-label="返回宇宙起点" title="返回宇宙起点">↺</button><button id="settings-toggle" type="button" aria-label="探索设置" aria-haspopup="dialog" title="探索设置">⚙</button><button id="motion-toggle" type="button" aria-pressed="false"><span id="motion-icon" aria-hidden="true">Ⅱ</span><span id="motion-label">暂停</span></button></div>
+        <p class="scene-status" id="scene-status" role="status" aria-live="polite"></p>
+        <p class="screen-reader-help">拖动航程可精确定位，探索设置可调节速度和观察灵敏度。主内容处方向键观察，W/S 前后行进，Shift 微调，Escape 停止航行，空格暂停。星域导航前往空间，记录入口打开介绍。</p>
+      </main>
+
+      <div class="cosmos-edge" aria-hidden="true"><span>EST. IN MY OWN TIME</span><span>NO FIXED COORDINATES</span></div>
+      <!-- SITE_FOOTER -->
+    </div>
+    <dialog id="about-panel" class="content-dialog" aria-labelledby="about-panel-title"><div class="dialog-topbar"><span>EVARA / PERSONAL ARCHIVE</span><button class="dialog-close" type="button" aria-label="关闭个人介绍">×</button></div><div class="dialog-body" data-source="about-source"></div></dialog>
+    <dialog id="systems-panel" class="content-dialog" aria-labelledby="systems-panel-title"><div class="dialog-topbar"><span>EVARA / PERSONAL ARCHIVE</span><button class="dialog-close" type="button" aria-label="关闭构造介绍">×</button></div><div class="dialog-body" data-source="systems-source"></div></dialog>
+    <dialog id="sound-panel" class="content-dialog" aria-labelledby="sound-panel-title"><div class="dialog-topbar"><span>EVARA / PERSONAL ARCHIVE</span><button class="dialog-close" type="button" aria-label="关闭声音介绍">×</button></div><div class="dialog-body" data-source="sound-source"></div></dialog>
+    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title"><div class="dialog-topbar"><span>EVARA / NAVIGATION</span><button id="settings-close" class="dialog-close" type="button" aria-label="关闭探索设置">×</button></div><div class="settings-body"><span class="panel-index">NAVIGATION / 探索设置</span><h2 id="settings-title">按自己的节奏，探索。</h2><p class="settings-intro">速度和观察幅度，只影响这一次旅程。</p><div class="setting-row"><label for="travel-speed">行进速度 <output id="speed-value">1.00×</output></label><input id="travel-speed" type="range" min="0.35" max="1.6" step="0.05" value="1"><div><span>轻缓</span><span>快速</span></div></div><div class="setting-row"><label for="look-sensitivity">观察灵敏度 <output id="sensitivity-value">1.00×</output></label><input id="look-sensitivity" type="range" min="0.35" max="1.6" step="0.05" value="1"><div><span>细腻</span><span>灵活</span></div></div><button id="settings-reset" class="settings-reset" type="button">恢复默认设置 ↺</button><div class="controls-guide"><h3>探索指南</h3><p><kbd>W</kbd> / <kbd>S</kbd> 前进与后退 · 拖动观察</p><p><kbd>Shift</kbd> 精细操作 · <kbd>Esc</kbd> 停止航行</p><p><kbd>Space</kbd> 暂停动态 · 航程条直接定位</p></div></div></dialog>
+  </body>
+</html>
