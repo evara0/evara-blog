@@ -6,6 +6,10 @@
     <meta name="theme-color" content="#ffffff">
     <title>个人 · EVARA'S BLOG</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
+    <link rel="stylesheet" href="/static/footprints/footprints.css">
+    <script src="/static/vendor/leaflet/leaflet.js" defer></script>
+    <script src="/static/footprints/footprints.js" defer></script>
   </head>
   <body>
     <div class="shell">
@@ -21,7 +25,48 @@
         </nav>
       </header>
       <main id="main-content">
-        <section class="content-page" aria-labelledby="personal-heading"><div class="section-heading"><span class="section-index">06 / ABOUT</span><h1 id="personal-heading">个人</h1></div><div class="content-panel about-copy"><h2>你好，我是 EVARA。</h2><p>构造工具，也探索声音。正在形成的想法、动手尝试的过程，还有沿途留下的记录。</p><p>比起一个固定标签，我更愿意用<a href="/now">正在做的事</a>介绍自己。保持好奇，也给未知留一点位置。</p></div></section><section class="timeline-section" aria-labelledby="timeline-heading"><div class="section-heading"><span class="section-index">07 / TIMELINE</span><h2 id="timeline-heading">个人足迹</h2></div><div class="content-panel timeline"><p class="empty-message">足迹还在整理中，之后会在这里分享。</p></div></section>
+        <section class="content-page" aria-labelledby="personal-heading"><div class="section-heading"><span class="section-index">06 / ABOUT</span><h1 id="personal-heading">个人</h1></div><div class="content-panel about-copy"><h2>你好，我是 EVARA。</h2><p>构造工具，也探索声音。正在形成的想法、动手尝试的过程，还有沿途留下的记录。</p><p>比起一个固定标签，我更愿意用<a href="/now">正在做的事</a>介绍自己。保持好奇，也给未知留一点位置。</p></div></section>
+        <section class="footprints" aria-labelledby="footprints-heading">
+          <div class="footprints-poster">
+            <div class="footprints-header">
+              <div>
+                <h2 id="footprints-heading">个人足迹</h2>
+                <p id="footprints-notice" class="footprints-notice" hidden></p>
+              </div>
+              <a href="#footprints-timeline">浏览时间线 ↓</a>
+            </div>
+            <p id="footprints-status" class="footprints-status" role="status">地图暂不可用，可浏览下方的足迹时间线。</p>
+            <div id="footprints-view" hidden>
+              <div class="footprints-toolbar" id="footprints-toolbar" hidden>
+                <div class="footprints-region">
+                  <label for="footprints-province">省级地区</label>
+                  <select id="footprints-province" aria-controls="footprints-map">
+                    <option value="">全国</option>
+                  </select>
+                  <button type="button" id="footprints-reset" aria-controls="footprints-map">返回全国</button>
+                </div>
+                <div class="footprints-zoom" role="group" aria-label="地图缩放">
+                  <button type="button" id="footprints-zoom-out" aria-label="缩小地图" aria-controls="footprints-map">−</button>
+                  <button type="button" id="footprints-zoom-in" aria-label="放大地图" aria-controls="footprints-map">+</button>
+                </div>
+              </div>
+              <div id="footprints-map" role="region" aria-label="中国足迹地图" aria-describedby="footprints-guide" inert></div>
+              <div class="footprints-caption" id="footprints-caption" hidden>
+                <p id="footprints-guide">拖动浏览，双指或用 + / − 缩放。选省份聚焦，选圆点查看到访。</p>
+                <p id="footprints-source"></p>
+              </div>
+            </div>
+          </div>
+          <div class="footprints-detail" id="footprints-detail" hidden>
+            <h3 id="footprints-city" tabindex="-1"></h3>
+            <ol id="footprints-city-visits" class="footprints-visits" aria-labelledby="footprints-city"></ol>
+          </div>
+          <div class="footprints-timeline" id="footprints-timeline">
+            <h3 id="footprints-timeline-heading">足迹时间线</h3>
+            <p id="footprints-empty" class="empty-message">足迹还在整理中，之后会在这里分享。</p>
+            <ol id="footprints-visits" class="footprints-visits" aria-labelledby="footprints-timeline-heading" hidden></ol>
+          </div>
+        </section>
       </main>
       <!-- SITE_FOOTER -->
     </div>

@@ -65,6 +65,10 @@ class BlogPageTests(unittest.TestCase):
 
     def test_page_routes_navigation_and_script_isolation(self):
         paths = ["/", "/now", "/projects", "/blog", "/records", "/me"]
+        page_scripts = {
+            "/now": ["/static/app.js"],
+            "/me": ["/static/vendor/leaflet/leaflet.js", "/static/footprints/footprints.js"],
+        }
         with TestClient(app) as client:
             for path, title, active in [
                 ("/", "EVARA'S BLOG", "/"), ("/now", "正在做", "/now"),
@@ -83,7 +87,7 @@ class BlogPageTests(unittest.TestCase):
                     nav = PageElements(nav_html).links
                     self.assertEqual([link["href"] for link in nav], paths)
                     self.assertEqual([link["href"] for link in nav if link.get("aria-current") == "page"], [active])
-                    self.assertEqual(document.scripts, ["/static/app.js"] if path == "/now" else [])
+                    self.assertEqual(document.scripts, page_scripts.get(path, []))
                     self.assertNotIn("宇宙探索", response.text)
             records = client.get("/records").text
             self.assertIn('href="/records/notes"', records)
@@ -97,6 +101,16 @@ class BlogPageTests(unittest.TestCase):
             self.assertIn("个人足迹", client.get("/static/me.html").text)
             for resource in ("/static/style.css", "/static/app.js", "/static/me.css", "/static/me.js", "/static/me-scene.js"):
                 self.assertEqual(client.get(resource).status_code, 200)
+            for resource in (*page_scripts["/me"], "/static/vendor/leaflet/leaflet.css", "/static/footprints/footprints.css"):
+                self.assertEqual(client.get(resource).status_code, 200)
+            map_config = client.get("/static/footprints/map.json").json()
+            self.assertEqual(map_config["image"]["src"], "/static/footprints/atlas.svg")
+            atlas = client.get(map_config["image"]["src"])
+            self.assertEqual(atlas.status_code, 200)
+            self.assertIn("image/svg+xml", atlas.headers["content-type"])
+            province_ids = {province["id"] for province in map_config["provinces"]}
+            self.assertIn("sc", province_ids)
+            self.assertTrue(all(city["province"] in province_ids for city in map_config["cities"]))
 
     def test_home_does_not_read_notes(self):
         with patch("app.main.current_note", side_effect=OSError("notes unavailable")), TestClient(app) as client:

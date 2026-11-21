@@ -53,6 +53,21 @@ notes/
 
 静态文件保存后刷新即可，缓存时强制刷新；后端代码更新需要重启或开发模式自动重载。修改导航或站名时同步各页面的导航和标题。
 
+## 维护个人足迹
+
+`app/static/footprints/visits.json` 是按单次到访填写的数组。每条记录包含 `cityId`、显示用的 `city`、`date`（`YYYY-MM-DD`）和 `note`，可附 `photo` 对象，内含同源图片的 `src` 和替代文字 `alt`。同一城市的历次记录使用相同的 `cityId`。时间线与地图分别加载，城市缺少点位时仍可在时间线阅读。源码默认使用空数组。
+
+`app/static/footprints/atlas.svg` 是站内托管的海报式示意底图，使用 [Natural Earth 1:10m 公共领域地理数据](https://www.naturalearthdata.com/about/terms-of-use/) 绘制。它和 `map.json` 使用同一兰伯特投影。公开发布前核对适用的地图要求。
+
+| 字段 | 内容 |
+| --- | --- |
+| `image` | `src`（从 `/` 开始的同源路径）、图幅 `width` 和 `height`、`alt`、`source`。 |
+| `provinces` | 对象数组。每项包含唯一的 `id`、`name` 和 `polygons`。`polygons` 是多边形数组，每个多边形由至少三个 `[x, y]` 顶点组成，闭合由地图处理。多个分离区域可填写多个多边形。 |
+| `cities` | 对象数组。每项包含 `id`（与到访的 `cityId` 对应）、`name`、`province`（对应省级地区 `id`）和 `[x, y]` 格式的 `point`。 |
+| `notice` | 可选的图幅说明，供本地验收标明样例数据。 |
+
+修改底图配色或图幅时，从 [Natural Earth 5.1.2 GeoJSON](https://github.com/nvkelso/natural-earth-vector/tree/v5.1.2/geojson) 获取脚本引用的五份图层，运行 `python scripts/render_footprints_atlas.py <GeoJSON目录>` 同时生成图幅和坐标。手动新增点位时，图幅左上角的像素坐标 `(px, py)` 对应 `[px / width, py / height]`。更换图幅后在总览、地区聚焦和手机视口复核地图与标记。Leaflet 1.9.4 随源码分发，许可证位于 `app/static/vendor/leaflet/`。
+
 ## 旧个人页
 
 宇宙探索已关闭。旧 `/me` 现为个人页，公开别名 `/static/me.html` 临时重定向到 `/me`；旧 HTML 保存在非公开的 `app/legacy/me.html`，相关资源保留供将来恢复。
