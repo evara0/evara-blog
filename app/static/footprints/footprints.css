@@ -53,6 +53,7 @@
 .footprints-zoom button { min-width: 44px; font-size: 21px; line-height: 1; }
 
 #footprints-map {
+  width: 100%;
   height: auto;
   min-height: 260px;
   aspect-ratio: 1.58;

@@ -6,10 +6,11 @@
 - `/now`：最近便签、月历与逐条翻页。
 - `/projects`：个人项目。
 - `/blog`：技术博客。
-- `/records`：记录，包含 `/records/notes` 随手记和 `/records/media` 书影音。
+- `/records/media`：书影音。
+- `/records/notes`：随手记。
 - `/me`：个人简介和个人足迹。
 
-六项导航互通，各页沿用黑白线条与留白。字体资源 Quicksand 和 OFL 许可证位于 `app/static/fonts/`，中文使用系统字体回退。
+七项导航互通。旧记录汇总地址 `/records` 仍可访问。各页沿用黑白线条与留白。字体资源 Quicksand 和 OFL 许可证位于 `app/static/fonts/`，中文使用系统字体回退。
 
 ## 环境与启动
 

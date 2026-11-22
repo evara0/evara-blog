@@ -64,35 +64,35 @@ class BlogPageTests(unittest.TestCase):
                 self.assertNotIn('<footer', client.get("/").text)
 
     def test_page_routes_navigation_and_script_isolation(self):
-        paths = ["/", "/now", "/projects", "/blog", "/records", "/me"]
+        paths = ["/", "/now", "/projects", "/blog", "/records/media", "/records/notes", "/me"]
         page_scripts = {
             "/now": ["/static/app.js"],
+            "/projects": ["/static/projects/gallery.js"],
             "/me": ["/static/vendor/leaflet/leaflet.js", "/static/footprints/footprints.js"],
         }
         with TestClient(app) as client:
             for path, title, active in [
                 ("/", "EVARA'S BLOG", "/"), ("/now", "正在做", "/now"),
                 ("/projects", "个人项目", "/projects"), ("/blog", "技术博客", "/blog"),
-                ("/records", "记录", "/records"), ("/me", "个人", "/me"),
-                ("/records/notes", "随手记", "/records"), ("/records/media", "书影音", "/records"),
+                ("/records", "记录", None), ("/me", "个人", "/me"),
+                ("/records/notes", "随手记", "/records/notes"), ("/records/media", "书影音", "/records/media"),
             ]:
                 with self.subTest(path=path):
                     response = client.get(path)
                     self.assertEqual(response.status_code, 200)
                     self.assertIn(title, response.text)
                     document = PageElements(response.text)
-                    nav = [link for link in document.links if link.get("href") in paths]
                     # The brand and content links are outside the primary navigation.
                     nav_html = response.text.split('<nav class="site-nav"', 1)[1].split('</nav>', 1)[0]
                     nav = PageElements(nav_html).links
                     self.assertEqual([link["href"] for link in nav], paths)
-                    self.assertEqual([link["href"] for link in nav if link.get("aria-current") == "page"], [active])
+                    self.assertEqual([link["href"] for link in nav if link.get("aria-current") == "page"], [active] if active else [])
                     self.assertEqual(document.scripts, page_scripts.get(path, []))
                     self.assertNotIn("宇宙探索", response.text)
             records = client.get("/records").text
             self.assertIn('href="/records/notes"', records)
             self.assertIn('href="/records/media"', records)
-            for path in ("/projects", "/blog", "/records/notes", "/records/media", "/me"):
+            for path in ("/blog", "/records/notes", "/records/media", "/me"):
                 self.assertIn("还", client.get(path).text)
             self.assertIn("个人足迹", client.get("/me").text)
             old = client.get("/static/me.html", follow_redirects=False)
@@ -111,6 +111,27 @@ class BlogPageTests(unittest.TestCase):
             province_ids = {province["id"] for province in map_config["provinces"]}
             self.assertIn("sc", province_ids)
             self.assertTrue(all(city["province"] in province_ids for city in map_config["cities"]))
+
+    def test_project_gallery_uses_real_site_examples_and_local_posters(self):
+        with TestClient(app) as client:
+            page = client.get("/projects").text
+            self.assertNotIn("以博客现有栏目为示例", page)
+            links = [
+                link["href"] for link in PageElements(page).links
+                if "project-link" in link.get("class", "").split()
+            ]
+            self.assertEqual(links, ["/", "/now", "/me#footprints-heading", "/records"])
+            for link in links:
+                response = client.get(link)
+                self.assertEqual(response.status_code, 200, link)
+                if "#" in link:
+                    self.assertIn(f'id="{link.split("#", 1)[1]}"', response.text)
+            for asset in ("home", "now", "footprints", "records"):
+                url = f"/static/projects/{asset}.webp"
+                self.assertIn(f'src="{url}"', page)
+                poster = client.get(url)
+                self.assertEqual(poster.status_code, 200, url)
+                self.assertEqual(poster.headers["content-type"], "image/webp")
 
     def test_home_does_not_read_notes(self):
         with patch("app.main.current_note", side_effect=OSError("notes unavailable")), TestClient(app) as client:

@@ -6,6 +6,8 @@
     <meta name="theme-color" content="#ffffff">
     <title>个人项目 · EVARA'S BLOG</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/projects/gallery.css">
+    <script src="/static/projects/gallery.js" defer></script>
   </head>
   <body>
     <div class="shell">
@@ -16,12 +18,63 @@
           <a href="/now">正在做</a>
           <a href="/projects" aria-current="page">个人项目</a>
           <a href="/blog">技术博客</a>
-          <a href="/records">记录</a>
+          <a href="/records/media">书影音</a>
+          <a href="/records/notes">随手记</a>
           <a href="/me">个人</a>
         </nav>
       </header>
       <main id="main-content">
-        <section class="content-page"><div class="section-heading"><span class="section-index">03 / PROJECTS</span><h1>个人项目</h1></div><div class="content-panel"><p class="empty-message">项目还在整理中，之后会在这里分享。</p></div></section>
+        <section class="project-gallery" aria-labelledby="projects-heading">
+          <div class="project-gallery-header">
+            <h1 id="projects-heading">个人项目</h1>
+            <div class="project-controls" hidden>
+              <button type="button" aria-label="向左浏览项目" aria-controls="project-strip" aria-disabled="true">←</button>
+              <button type="button" aria-label="向右浏览项目" aria-controls="project-strip">→</button>
+            </div>
+          </div>
+          <ul class="project-strip" id="project-strip">
+            <li class="project-card project-card--home">
+              <div class="project-cover">
+                <button class="project-poster" type="button" aria-label="博客首页介绍" aria-controls="project-home" aria-describedby="project-home" aria-expanded="false" disabled>
+                  <img src="/static/projects/home.webp" alt="" width="800" height="1000">
+                  <span class="project-toggle" aria-hidden="true"></span>
+                </button>
+                <p class="project-description" id="project-home">这个博客的起点。沿着栏目入口，找到正在做的事、技术文章和日常记录。</p>
+              </div>
+              <a class="project-link" href="/">博客首页 <span aria-hidden="true">↗</span></a>
+            </li>
+            <li class="project-card project-card--now">
+              <div class="project-cover">
+                <button class="project-poster" type="button" aria-label="正在做介绍" aria-controls="project-now" aria-describedby="project-now" aria-expanded="false" disabled>
+                  <img src="/static/projects/now.webp" alt="" width="800" height="1000">
+                  <span class="project-toggle" aria-hidden="true"></span>
+                </button>
+                <p class="project-description" id="project-now">把手头的事写成按日整理的便签。先看最近的一条，也可以打开月历翻看往日。</p>
+              </div>
+              <a class="project-link" href="/now">正在做 <span aria-hidden="true">↗</span></a>
+            </li>
+            <li class="project-card project-card--footprints">
+              <div class="project-cover">
+                <button class="project-poster" type="button" aria-label="个人足迹介绍" aria-controls="project-footprints" aria-describedby="project-footprints" aria-expanded="false" disabled>
+                  <img src="/static/projects/footprints.webp" alt="" width="800" height="1000">
+                  <span class="project-toggle" aria-hidden="true"></span>
+                </button>
+                <p class="project-description" id="project-footprints">在一张地图和一条时间线上整理到访记录，可以按地区浏览，也可以沿时间回看。</p>
+              </div>
+              <a class="project-link" href="/me#footprints-heading">个人足迹 <span aria-hidden="true">↗</span></a>
+            </li>
+            <li class="project-card project-card--records">
+              <div class="project-cover">
+                <button class="project-poster" type="button" aria-label="记录介绍" aria-controls="project-records" aria-describedby="project-records" aria-expanded="false" disabled>
+                  <img src="/static/projects/records.webp" alt="" width="800" height="1000">
+                  <span class="project-toggle" aria-hidden="true"></span>
+                </button>
+                <p class="project-description" id="project-records">留给随手短记与书影音的地方。日常里的片段，和读过、看过、听过的东西，各有归处。</p>
+              </div>
+              <a class="project-link" href="/records">记录 <span aria-hidden="true">↗</span></a>
+            </li>
+          </ul>
+        </section>
       </main>
       <!-- SITE_FOOTER -->
     </div>
