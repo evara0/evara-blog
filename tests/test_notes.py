@@ -64,7 +64,7 @@ class BlogPageTests(unittest.TestCase):
                 self.assertNotIn('<footer', client.get("/").text)
 
     def test_page_routes_navigation_and_script_isolation(self):
-        paths = ["/", "/now", "/projects", "/blog", "/records/media", "/records/notes", "/me"]
+        paths = ["/", "/now", "/projects", "/blog", "/records/media", "/articles", "/me"]
         page_scripts = {
             "/now": ["/static/app.js"],
             "/projects": ["/static/projects/gallery.js"],
@@ -75,7 +75,7 @@ class BlogPageTests(unittest.TestCase):
                 ("/", "EVARA'S BLOG", "/"), ("/now", "正在做", "/now"),
                 ("/projects", "个人项目", "/projects"), ("/blog", "技术博客", "/blog"),
                 ("/records", "记录", None), ("/me", "个人", "/me"),
-                ("/records/notes", "随手记", "/records/notes"), ("/records/media", "书影音", "/records/media"),
+                ("/articles", "文章", "/articles"), ("/records/media", "书影音", "/records/media"),
             ]:
                 with self.subTest(path=path):
                     response = client.get(path)
@@ -90,9 +90,9 @@ class BlogPageTests(unittest.TestCase):
                     self.assertEqual(document.scripts, page_scripts.get(path, []))
                     self.assertNotIn("宇宙探索", response.text)
             records = client.get("/records").text
-            self.assertIn('href="/records/notes"', records)
+            self.assertEqual(records.count('href="/articles"'), 2)
             self.assertIn('href="/records/media"', records)
-            for path in ("/blog", "/records/notes", "/records/media", "/me"):
+            for path in ("/blog", "/articles", "/records/media", "/me"):
                 self.assertIn("还", client.get(path).text)
             self.assertIn("个人足迹", client.get("/me").text)
             old = client.get("/static/me.html", follow_redirects=False)

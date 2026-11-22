@@ -7,7 +7,7 @@
 - `/projects`：个人项目。
 - `/blog`：技术博客。
 - `/records/media`：书影音。
-- `/records/notes`：随手记。
+- `/articles`：文章转盘与正文。旧入口 `/records/notes` 跳转到这里。
 - `/me`：个人简介和个人足迹。
 
 七项导航互通。旧记录汇总地址 `/records` 仍可访问。各页沿用黑白线条与留白。字体资源 Quicksand 和 OFL 许可证位于 `app/static/fonts/`，中文使用系统字体回退。
@@ -47,12 +47,25 @@ notes/
 | --- | --- |
 | 主页与正在做 | `app/static/index.html`、`now.html` |
 | 公共样式与便签交互 | `app/static/style.css`、`app.js` |
-| 栏目与个人内容 | `app/static/projects.html`、`blog.html`、`records.html`、`record-notes.html`、`record-media.html`、`me.html` |
+| 栏目与个人内容 | `app/static/projects.html`、`blog.html`、`records.html`、`record-media.html`、`me.html` |
+| 文章页面与样式 | `app/templates/articles.html`、`app/static/articles/` |
 | 保留的旧宇宙页面 | `app/legacy/me.html`；相关资源 `app/static/me.css`、`me.js`、`me-scene.js` |
 | 路由与签名 | `app/main.py` |
 | 便签读取 | `app/notes.py` |
 
 静态文件保存后刷新即可，缓存时强制刷新；后端代码更新需要重启或开发模式自动重载。修改导航或站名时同步各页面的导航和标题。
+
+## 发布文章与本机预览
+
+将公开文章写入 `app/articles.json` 的 UTF-8 数组。数组顺序即目录顺序。每篇使用唯一的 `slug`（小写字母、数字及连字符，例如 `morning-walk`），填写 `title`、`summary`、`cover`、`cover_alt` 及至少包含一段文字的 `paragraphs` 数组。`cover` 填写站内图片地址，例如 `/static/articles/covers/morning.webp`，建议使用 4:3 图幅。正文段落按纯文本展示，保存后刷新生效。数组为空时，公开文章页显示空状态。
+
+在项目根目录启动本机样例：
+
+```bash
+uv run --frozen python -m scripts.preview_articles
+```
+
+打开 [文章预览](http://127.0.0.1:8791/articles)。预览进程仅监听回环地址，从 `tests/fixtures/articles/` 读取四篇带「本机验收样例」标记的内容和封面。常规启动读取正式目录。
 
 ## 维护个人足迹
 

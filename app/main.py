@@ -11,6 +11,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.articles import load_articles, render_article, render_directory
 from app.notes import current_note, monthly_notes
 
 
@@ -18,6 +19,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_DIR = BASE_DIR / "app" / "static"
 NOTES_DIR = BASE_DIR / "notes"
 SIGNATURE_FILE = BASE_DIR / "signature.txt"
+ARTICLES_FILE = BASE_DIR / "app" / "articles.json"
+ARTICLES_PREVIEW = False
 MONTH_PATTERN = re.compile(r"^(\d{4})-(0[1-9]|1[0-2])$")
 
 app = FastAPI(title="EVARA'S BLOG", docs_url=None, redoc_url=None)
@@ -26,10 +29,16 @@ def old_personal_page() -> RedirectResponse:
     return RedirectResponse("/me", status_code=307, headers={"Cache-Control": "no-store"})
 
 
+@app.get("/static/record-notes.html", include_in_schema=False)
+@app.get("/records/notes", include_in_schema=False)
+def record_notes() -> RedirectResponse:
+    return RedirectResponse("/articles", status_code=308)
+
+
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
-def render_page(filename: str) -> HTMLResponse:
+def render_page(filename: str, *, directory: Path = STATIC_DIR, **fragments: str) -> HTMLResponse:
     try:
         signature = SIGNATURE_FILE.read_text(encoding="utf-8-sig").strip()
     except (OSError, UnicodeError):
@@ -38,8 +47,10 @@ def render_page(filename: str) -> HTMLResponse:
     if signature:
         footer_class = "site-footer home-footer" if filename == "index.html" else "site-footer"
         footer = f'<footer class="{footer_class}"><p class="site-signature">{escape(signature)}</p></footer>'
-    page = (STATIC_DIR / filename).read_text(encoding="utf-8-sig")
-    return HTMLResponse(page.replace("<!-- SITE_FOOTER -->", footer), headers={"Cache-Control": "no-store"})
+    page = (directory / filename).read_text(encoding="utf-8-sig")
+    fragments["SITE_FOOTER"] = footer
+    page = re.sub(r"<!-- ([A-Z_]+) -->", lambda match: fragments.get(match[1], match[0]), page)
+    return HTMLResponse(page, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/", include_in_schema=False)
@@ -72,9 +83,30 @@ def records() -> HTMLResponse:
     return render_page("records.html")
 
 
-@app.get("/records/notes", include_in_schema=False)
-def record_notes() -> HTMLResponse:
-    return render_page("record-notes.html")
+@app.get("/articles", include_in_schema=False)
+def articles() -> HTMLResponse:
+    catalog = load_articles(ARTICLES_FILE)
+    return render_page(
+        "articles.html",
+        directory=STATIC_DIR.parent / "templates",
+        ARTICLE_TITLE="文章",
+        ARTICLE_SCRIPT='<script src="/static/articles/carousel.js" defer></script>' if catalog else "",
+        ARTICLE_CONTENT=render_directory(catalog, ARTICLES_PREVIEW),
+    )
+
+
+@app.get("/articles/{slug}", include_in_schema=False)
+def article(slug: str) -> HTMLResponse:
+    for entry in load_articles(ARTICLES_FILE):
+        if entry.slug == slug:
+            return render_page(
+                "articles.html",
+                directory=STATIC_DIR.parent / "templates",
+                ARTICLE_TITLE=escape(entry.title),
+                ARTICLE_SCRIPT="",
+                ARTICLE_CONTENT=render_article(entry, ARTICLES_PREVIEW),
+            )
+    raise HTTPException(status_code=404, detail="找不到这篇文章")
 
 
 @app.get("/records/media", include_in_schema=False)
