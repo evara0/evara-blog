@@ -17,8 +17,20 @@ class ArticleTests(TestCase):
         with TestClient(app) as client:
             response = client.get("/articles")
             self.assertEqual(response.status_code, 200)
-            self.assertIn("还没有发布文章", response.text)
+            article_path = "/articles/pudong-art-museum"
+            self.assertIn(f'href="{article_path}"', response.text)
             self.assertNotIn("本机验收样例", response.text)
+            reading = client.get(article_path)
+            self.assertEqual(reading.status_code, 200)
+            self.assertIn("浦东美术馆之行--徒劳与行动", reading.text)
+            self.assertIn("wangzi", reading.text)
+            self.assertIn("https://mp.weixin.qq.com/s/XA3ENtpm5UlFx11RC2i10Q", reading.text)
+            for filename in ("cover.jpg", *(f"photo-{index:02}.jpg" for index in range(1, 8))):
+                url = f"/static/articles/pudong-art-museum/{filename}"
+                self.assertIn(f'src="{url}"', reading.text)
+                image = client.get(url)
+                self.assertEqual(image.status_code, 200)
+                self.assertEqual(image.headers["content-type"], "image/jpeg")
             self.assertEqual(client.get("/articles/morning-streets").status_code, 404)
             self.assertEqual(client.get("/static/article-preview/morning-streets.webp").status_code, 404)
             for legacy in ("/records/notes", "/static/record-notes.html"):
@@ -59,6 +71,13 @@ class ArticleTests(TestCase):
                 "cover": "/static/projects/home.webp",
                 "cover_alt": '包含"引号',
                 "paragraphs": ["<img src=x>", "第二段"],
+                "images": [{
+                    "after_paragraph": 1,
+                    "src": "/static/projects/now.webp",
+                    "alt": '正文配图 "A"',
+                    "width": 960,
+                    "height": 540,
+                }],
             }
             with patch("app.main.ARTICLES_FILE", catalog):
                 catalog.write_text(json.dumps([payload]), encoding="utf-8")
@@ -70,6 +89,14 @@ class ArticleTests(TestCase):
                 reading = client.get("/articles/first-article")
                 self.assertIn("<p>&lt;img src=x&gt;</p>", reading.text)
                 self.assertNotIn("<b>样例</b>", reading.text)
+                self.assertRegex(
+                    reading.text,
+                    r'<p>&lt;img src=x&gt;</p><figure><img src="/static/projects/now.webp" '
+                    r'alt="正文配图 &quot;A&quot;"[^>]+></figure><p>第二段</p>',
+                )
+                payload["images"][0]["after_paragraph"] = 3
+                catalog.write_text(json.dumps([payload]), encoding="utf-8")
+                self.assertEqual(client.get("/articles/first-article").status_code, 503)
                 catalog.write_text("[]", encoding="utf-8")
                 self.assertIn("还没有发布文章", client.get("/articles").text)
                 self.assertEqual(client.get("/articles/first-article").status_code, 404)

@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.articles import load_articles, render_article, render_directory
 from app.notes import current_note, monthly_notes
+from app.technical_blog import load_technical_articles, render_technical_blog
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,6 +21,7 @@ STATIC_DIR = BASE_DIR / "app" / "static"
 NOTES_DIR = BASE_DIR / "notes"
 SIGNATURE_FILE = BASE_DIR / "signature.txt"
 ARTICLES_FILE = BASE_DIR / "app" / "articles.json"
+TECHNICAL_ARTICLES_FILE = BASE_DIR / "app" / "technical_articles.json"
 ARTICLES_PREVIEW = False
 MONTH_PATTERN = re.compile(r"^(\d{4})-(0[1-9]|1[0-2])$")
 
@@ -33,6 +35,11 @@ def old_personal_page() -> RedirectResponse:
 @app.get("/records/notes", include_in_schema=False)
 def record_notes() -> RedirectResponse:
     return RedirectResponse("/articles", status_code=308)
+
+
+@app.get("/static/blog.html", include_in_schema=False)
+def old_technical_blog() -> RedirectResponse:
+    return RedirectResponse("/blog", status_code=308)
 
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -75,7 +82,11 @@ def projects() -> HTMLResponse:
 
 @app.get("/blog", include_in_schema=False)
 def blog() -> HTMLResponse:
-    return render_page("blog.html")
+    return render_page(
+        "blog.html",
+        directory=STATIC_DIR.parent / "templates",
+        TECHNICAL_BLOG_CONTENT=render_technical_blog(load_technical_articles(TECHNICAL_ARTICLES_FILE)),
+    )
 
 
 @app.get("/records", include_in_schema=False)

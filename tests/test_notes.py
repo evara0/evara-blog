@@ -2,6 +2,7 @@ from datetime import date
 from html.parser import HTMLParser
 from pathlib import Path
 from tempfile import TemporaryDirectory
+import json
 import unittest
 from unittest.mock import patch
 
@@ -30,6 +31,35 @@ class PageElements(HTMLParser):
 
 
 class BlogPageTests(unittest.TestCase):
+    def test_technical_blog_uses_catalog_on_each_request(self):
+        record = {
+            "slug": "sample-post",
+            "title": "技术样例 <tag>",
+            "summary": "摘要 & 示例",
+            "paragraphs": ["第一段", "第二段 <tag>"],
+        }
+        extra = {**record, "slug": "another-post", "title": "另一个样例"}
+        with TemporaryDirectory() as directory:
+            catalog = Path(directory) / "technical_articles.json"
+            with patch("app.main.TECHNICAL_ARTICLES_FILE", catalog), TestClient(app) as client:
+                self.assertEqual(client.get("/blog").status_code, 503)
+                catalog.write_text("[]", encoding="utf-8")
+                self.assertIn("还没有发布技术文章", client.get("/blog").text)
+                catalog.write_text(json.dumps([record, extra], ensure_ascii=False), encoding="utf-8")
+                page = client.get("/blog").text
+                self.assertLess(page.index('href="#sample-post"'), page.index('href="#another-post"'))
+                self.assertEqual(page.count("技术样例 &lt;tag&gt;"), 2)
+                self.assertIn("摘要 &amp; 示例", page)
+                self.assertIn("第二段 &lt;tag&gt;", page)
+                self.assertNotIn("<tag>", page)
+                self.assertIn('href="#article-index"', page)
+                self.assertEqual(client.get("/static/blog.html", follow_redirects=False).status_code, 308)
+                self.assertEqual(client.get("/static/blog.html").text, page)
+                for invalid in ("{}", "[", json.dumps([record, record])):
+                    with self.subTest(catalog=invalid):
+                        catalog.write_text(invalid, encoding="utf-8")
+                        self.assertEqual(client.get("/blog").status_code, 503)
+
     def test_signature_updates_on_refresh_and_is_plain_text(self):
         with TemporaryDirectory() as directory:
             signature = Path(directory) / "signature.txt"
@@ -68,6 +98,7 @@ class BlogPageTests(unittest.TestCase):
         page_scripts = {
             "/now": ["/static/app.js"],
             "/projects": ["/static/projects/gallery.js"],
+            "/articles": ["/static/articles/carousel.js"],
             "/me": ["/static/vendor/leaflet/leaflet.js", "/static/footprints/footprints.js"],
         }
         with TestClient(app) as client:
@@ -92,8 +123,13 @@ class BlogPageTests(unittest.TestCase):
             records = client.get("/records").text
             self.assertEqual(records.count('href="/articles"'), 2)
             self.assertIn('href="/records/media"', records)
-            for path in ("/blog", "/articles", "/records/media", "/me"):
+            for path in ("/records/media", "/me"):
                 self.assertIn("还", client.get(path).text)
+            technical_blog = client.get("/blog").text
+            for anchor in ("ai-coding-workflow", "data-structure-as-ai-api"):
+                self.assertIn(f'href="#{anchor}"', technical_blog)
+                self.assertIn(f'<article class="journal-article" id="{anchor}"', technical_blog)
+            self.assertEqual(client.get("/static/technical-blog.css").status_code, 200)
             self.assertIn("个人足迹", client.get("/me").text)
             old = client.get("/static/me.html", follow_redirects=False)
             self.assertEqual(old.status_code, 307)

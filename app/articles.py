@@ -1,20 +1,41 @@
 """Read the public article catalog and render its directory and reading views."""
 
 import json
+from collections import defaultdict
 from html import escape
 from pathlib import Path
 
 from fastapi import HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl, model_validator
+
+
+STATIC_IMAGE_PATTERN = r"^/static/(?:[a-zA-Z0-9_-]+/)*[a-zA-Z0-9_.-]+\.(?:avif|gif|jpe?g|png|svg|webp)$"
+
+
+class ArticleImage(BaseModel):
+    after_paragraph: int = Field(ge=1)
+    src: str = Field(pattern=STATIC_IMAGE_PATTERN)
+    alt: str = Field(min_length=1)
+    width: int = Field(gt=0)
+    height: int = Field(gt=0)
 
 
 class Article(BaseModel):
     slug: str = Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     title: str = Field(min_length=1)
     summary: str = Field(min_length=1)
-    cover: str = Field(pattern=r"^/static/(?:[a-zA-Z0-9_-]+/)*[a-zA-Z0-9_.-]+\.(?:avif|gif|jpe?g|png|svg|webp)$")
+    cover: str = Field(pattern=STATIC_IMAGE_PATTERN)
     cover_alt: str = Field(min_length=1)
     paragraphs: list[str] = Field(min_length=1)
+    author: str | None = Field(default=None, min_length=1)
+    source_url: HttpUrl | None = None
+    images: list[ArticleImage] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_image_positions(self):
+        if any(image.after_paragraph > len(self.paragraphs) for image in self.images):
+            raise ValueError("article image refers to a missing paragraph")
+        return self
 
     @property
     def url(self) -> str:
@@ -99,11 +120,27 @@ def index_item(article: Article, position: int, total: int) -> str:
 
 def render_article(article: Article, preview: bool) -> str:
     label = '<p class="articles-preview">本机验收样例</p>' if preview else ""
-    paragraphs = "\n".join(f"<p>{escape(paragraph)}</p>" for paragraph in article.paragraphs)
+    byline = f'<p class="article-byline">{escape(article.author)}</p>' if article.author else ""
+    source = (
+        f'<p><a href="{escape(str(article.source_url))}">阅读原文 ↗</a></p>'
+        if article.source_url else ""
+    )
+    images_by_paragraph = defaultdict(list)
+    for image in article.images:
+        images_by_paragraph[image.after_paragraph].append(
+            f'<figure><img src="{escape(image.src)}" alt="{escape(image.alt)}" '
+            f'width="{image.width}" height="{image.height}" loading="lazy"></figure>'
+        )
+
+    body = []
+    for number, paragraph in enumerate(article.paragraphs, 1):
+        body.append(f"<p>{escape(paragraph)}</p>")
+        body.extend(images_by_paragraph.get(number, ()))
+
     return f"""
           <article class="article-reading">
             <a class="article-back" href="/articles">← 返回文章目录</a>
-            <header>{label}<h1>{escape(article.title)}</h1><p>{escape(article.summary)}</p></header>
+            <header>{label}<h1>{escape(article.title)}</h1>{byline}<p>{escape(article.summary)}</p></header>
             <figure>{cover_image(article)}</figure>
-            <div class="article-prose">{paragraphs}</div>
+            <div class="article-prose">{''.join(body)}{source}</div>
           </article>"""

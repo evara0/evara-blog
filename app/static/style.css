@@ -47,6 +47,7 @@ a { color: inherit; }
 .eyebrow { margin: 0 0 5px; }
 h1, h2, h3 { font-family: "Quicksand", "YouYuan", "Microsoft YaHei", "PingFang SC", sans-serif; font-weight: 700; font-synthesis: weight; }
 h1 { font-size: clamp(31px, 4vw, 46px); line-height: 1.1; letter-spacing: -.06em; margin: 0; }
+.display-title { font-size: clamp(38px, 5.2vw, 72px); letter-spacing: -.055em; }
 .home-column { display: grid; grid-template-columns: 118px minmax(0, 1fr) 56px; gap: 22px; padding: 36px 0 42px; border-bottom: 1.5px solid #111; }
 .home-column h1 { font-size: clamp(21px, 2.5vw, 28px); letter-spacing: -.04em; line-height: 1.3; font-weight: 700; }
 .home-column .section-index { padding-top: 5px; }

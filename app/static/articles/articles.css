@@ -383,6 +383,7 @@
   line-height: 1.8;
   margin: 16px 0 0;
 }
+.article-reading header .article-byline:not(.articles-preview) { font-size: 14px; }
 .article-reading figure { margin: 0; }
 .article-reading img {
   display: block;
@@ -400,6 +401,8 @@
   overflow-wrap: anywhere;
 }
 .article-prose p { white-space: pre-line; }
+.article-prose figure { margin-block: 1.5em; }
+.article-prose img { max-height: none; }
 
 @media (max-width: 900px) {
   .articles-site .shell { width: min(100% - 32px, 660px); }

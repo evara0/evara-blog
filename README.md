@@ -47,7 +47,9 @@ notes/
 | --- | --- |
 | 主页与正在做 | `app/static/index.html`、`now.html` |
 | 公共样式与便签交互 | `app/static/style.css`、`app.js` |
-| 栏目与个人内容 | `app/static/projects.html`、`blog.html`、`records.html`、`record-media.html`、`me.html` |
+| 栏目与个人内容 | `app/static/projects.html`、`records.html`、`record-media.html`、`me.html` |
+| 技术文章内容 | `app/technical_articles.json` |
+| 技术博客模板与排版 | `app/templates/blog.html`、`app/static/technical-blog.css` |
 | 文章页面与样式 | `app/templates/articles.html`、`app/static/articles/` |
 | 保留的旧宇宙页面 | `app/legacy/me.html`；相关资源 `app/static/me.css`、`me.js`、`me-scene.js` |
 | 路由与签名 | `app/main.py` |
@@ -55,9 +57,15 @@ notes/
 
 静态文件保存后刷新即可，缓存时强制刷新；后端代码更新需要重启或开发模式自动重载。修改导航或站名时同步各页面的导航和标题。
 
+## 发布技术博客
+
+在 `app/technical_articles.json` 的 UTF-8 数组中添加一条记录，填写 `slug`、`title`、`summary` 和至少包含一段正文的 `paragraphs`。数组顺序即展示顺序，`slug` 使用唯一的小写字母、数字和连字符，发布后保持稳定，以保留 `/blog#slug` 的链接。正文以纯文本渲染，可选的 `appearance: "data"` 使用弧线卡片样式。保存后刷新 `/blog` 即可看到更新。
+
 ## 发布文章与本机预览
 
 将公开文章写入 `app/articles.json` 的 UTF-8 数组。数组顺序即目录顺序。每篇使用唯一的 `slug`（小写字母、数字及连字符，例如 `morning-walk`），填写 `title`、`summary`、`cover`、`cover_alt` 及至少包含一段文字的 `paragraphs` 数组。`cover` 填写站内图片地址，例如 `/static/articles/covers/morning.webp`，建议使用 4:3 图幅。正文段落按纯文本展示，保存后刷新生效。数组为空时，公开文章页显示空状态。
+
+转存文章时，可填写 `author` 署名和 `source_url` 原文地址。正文配图写入 `images`，每张填写站内 `src`、替代文字 `alt`、实际像素 `width` 和 `height`，以及插入位置 `after_paragraph`（从第 1 段开始编号）。
 
 在项目根目录启动本机样例：
 

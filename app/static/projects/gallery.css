@@ -10,11 +10,6 @@
   margin-bottom: clamp(22px, 3vw, 36px);
 }
 
-.project-gallery-header h1 {
-  font-size: clamp(38px, 5.2vw, 72px);
-  letter-spacing: -.055em;
-}
-
 .project-controls {
   display: flex;
   flex: none;
