@@ -1,8 +1,32 @@
-{% extends "base.html" %}
-{% block title %}文章 · EVARA'S BLOG{% endblock %}
-{% block content %}
-<section class="articles-section" aria-labelledby="articles-heading">
-  <div class="section-heading"><span class="section-index">ARCHIVE</span><h1 id="articles-heading">全部文章</h1></div>
-  {% include "_article_list.html" %}
-</section>
-{% endblock %}
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f8e6ee">
+    <title><!-- ARTICLE_TITLE --> · EVARA'S BLOG</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/articles/articles.css">
+    <!-- ARTICLE_SCRIPT -->
+  </head>
+  <body class="articles-site">
+    <div class="shell">
+      <header class="blog-header">
+        <a class="site-brand" href="/"><span class="brand-mark" aria-hidden="true">//</span><span>EVARA'S BLOG</span></a>
+        <nav class="site-nav" aria-label="主导航">
+          <a href="/">首页</a>
+          <a href="/now">正在做</a>
+          <a href="/projects">个人项目</a>
+          <a href="/blog">技术博客</a>
+          <a href="/records/media">书影音</a>
+          <a href="/articles" aria-current="page">文章</a>
+          <a href="/me">个人</a>
+        </nav>
+      </header>
+      <main id="main-content" class="articles-page">
+        <!-- ARTICLE_CONTENT -->
+      </main>
+      <!-- SITE_FOOTER -->
+    </div>
+  </body>
+</html>

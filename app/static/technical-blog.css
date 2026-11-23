@@ -1,0 +1,90 @@
+.technical-journal {
+  --journal-ink: #273378;
+  --journal-rule: #899ad6;
+  --journal-paper: #f7f8ff;
+  color: var(--journal-ink);
+  padding-block: clamp(38px, 6vw, 78px) 62px;
+}
+
+.journal-title { color: #111; }
+
+.journal-index { margin-top: 24px; }
+.journal-index h2 { margin: 0 0 10px; font-size: 16px; }
+
+.journal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 1px;
+  background: var(--journal-rule);
+  list-style: none;
+}
+
+.journal-entry {
+  --entry-drawing: repeating-linear-gradient(0deg, #8a9adb75 0 1px, transparent 1px 16px);
+  background: var(--journal-paper);
+}
+
+.journal-entry--data {
+  --entry-drawing: repeating-radial-gradient(ellipse at 65% 115%, transparent 0 14px, #8a9adb75 15px 16px);
+}
+
+.journal-entry a {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  min-height: clamp(176px, 20vw, 255px);
+  padding: clamp(18px, 2.6vw, 32px);
+  text-decoration: none;
+}
+
+.journal-entry a::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: auto 0 0;
+  height: 35%;
+  background: var(--entry-drawing);
+  mask-image: linear-gradient(transparent, #000);
+}
+
+.journal-entry a:is(:hover, :focus-visible) { background: #e4e9ff; }
+.journal-entry a:is(:hover, :focus-visible) h3 { text-decoration: underline; text-underline-offset: 5px; }
+.journal-entry h3 { margin: 0; font-size: clamp(21px, 2.3vw, 30px); line-height: 1.32; }
+.journal-entry p { margin: 10px 0 32px; color: #465487; font-size: 15px; line-height: 1.6; }
+
+.journal-entry-arrow {
+  position: absolute;
+  inset: auto 18px 16px auto;
+  display: grid;
+  width: 33px;
+  height: 33px;
+  place-items: center;
+  border: 1px solid var(--journal-rule);
+  background: var(--journal-paper);
+}
+
+.journal-reading { margin-top: clamp(34px, 6vw, 82px); }
+
+.journal-article {
+  padding: clamp(23px, 4vw, 44px) clamp(12px, 3vw, 40px);
+  border-top: 1px solid var(--journal-rule);
+  scroll-margin-block-start: 12px;
+}
+
+.journal-article:last-child { border-bottom: 1px solid var(--journal-rule); }
+.journal-article:target { background: #f1f4ff; }
+.journal-article h2 { margin: 0 0 16px; font-size: clamp(24px, 3.5vw, 36px); line-height: 1.3; }
+.journal-article p { max-width: 44em; margin: 0 0 14px; color: #282f4a; font-size: 16px; line-height: 1.85; overflow-wrap: anywhere; }
+.journal-back { display: inline-block; margin-top: 5px; font-size: 14px; text-underline-offset: 4px; }
+.technical-journal a:focus-visible, .journal-article:focus-visible, .journal-index:focus-visible {
+  outline: 2px solid var(--journal-ink);
+  outline-offset: -2px;
+}
+
+@media (max-width: 680px) {
+  .journal-grid { grid-template-columns: 1fr; }
+  .journal-entry a { min-height: 132px; }
+  .journal-entry p { margin-bottom: 22px; }
+}

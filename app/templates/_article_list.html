@@ -3,11 +3,11 @@
   {% for article in articles %}
   <article class="article-row">
     <time datetime="{{ article.date.isoformat() }}">{{ article.date.isoformat() }}</time>
-    <div><h2><a href="/articles/{{ article.slug }}">{{ article.title }}</a></h2>
+    <div><a class="article-row-title" href="/blog/{{ article.slug }}">{{ article.title }}</a>
       <p>{{ article.summary }}</p>
       {% if article.tags %}<ul class="article-tags" aria-label="标签">{% for tag in article.tags %}<li>{{ tag }}</li>{% endfor %}</ul>{% endif %}
     </div>
   </article>
   {% endfor %}
 </div>
-{% else %}<p class="empty-message">暂无文章，敬请期待。</p>{% endif %}
+{% else %}<p class="empty-message">暂无 Markdown 技术文章。</p>{% endif %}

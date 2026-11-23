@@ -2,6 +2,7 @@ from datetime import date
 from html.parser import HTMLParser
 from pathlib import Path
 from tempfile import TemporaryDirectory
+import json
 import unittest
 from unittest.mock import patch
 
@@ -30,6 +31,35 @@ class PageElements(HTMLParser):
 
 
 class BlogPageTests(unittest.TestCase):
+    def test_technical_blog_uses_catalog_on_each_request(self):
+        record = {
+            "slug": "sample-post",
+            "title": "技术样例 <tag>",
+            "summary": "摘要 & 示例",
+            "paragraphs": ["第一段", "第二段 <tag>"],
+        }
+        extra = {**record, "slug": "another-post", "title": "另一个样例"}
+        with TemporaryDirectory() as directory:
+            catalog = Path(directory) / "technical_articles.json"
+            with patch("app.main.TECHNICAL_ARTICLES_FILE", catalog), TestClient(app) as client:
+                self.assertEqual(client.get("/blog").status_code, 503)
+                catalog.write_text("[]", encoding="utf-8")
+                self.assertIn("还没有发布技术文章", client.get("/blog").text)
+                catalog.write_text(json.dumps([record, extra], ensure_ascii=False), encoding="utf-8")
+                page = client.get("/blog").text
+                self.assertLess(page.index('href="#sample-post"'), page.index('href="#another-post"'))
+                self.assertEqual(page.count("技术样例 &lt;tag&gt;"), 2)
+                self.assertIn("摘要 &amp; 示例", page)
+                self.assertIn("第二段 &lt;tag&gt;", page)
+                self.assertNotIn("<tag>", page)
+                self.assertIn('href="#article-index"', page)
+                self.assertEqual(client.get("/static/blog.html", follow_redirects=False).status_code, 308)
+                self.assertEqual(client.get("/static/blog.html").text, page)
+                for invalid in ("{}", "[", json.dumps([record, record])):
+                    with self.subTest(catalog=invalid):
+                        catalog.write_text(invalid, encoding="utf-8")
+                        self.assertEqual(client.get("/blog").status_code, 503)
+
     def test_signature_updates_on_refresh_and_is_plain_text(self):
         with TemporaryDirectory() as directory:
             signature = Path(directory) / "signature.txt"
@@ -64,37 +94,80 @@ class BlogPageTests(unittest.TestCase):
                 self.assertNotIn('<footer', client.get("/").text)
 
     def test_page_routes_navigation_and_script_isolation(self):
+        paths = ["/", "/now", "/projects", "/blog", "/records/media", "/articles", "/me"]
+        page_scripts = {
+            "/now": ["/static/app.js"],
+            "/projects": ["/static/projects/gallery.js"],
+            "/articles": ["/static/articles/carousel.js"],
+            "/me": ["/static/vendor/leaflet/leaflet.js", "/static/footprints/footprints.js"],
+        }
         with TestClient(app) as client:
-            for path, title, required_id in (
-                ("/", "<title>EVARA'S BLOG</title>", "now-heading"),
-                ("/now", "<title>正在做 · EVARA'S BLOG</title>", "calendar"),
-                ("/me", "<title>个人 · EVARA'S BLOG</title>", "personal-heading"),
-            ):
+            for path, title, active in [
+                ("/", "EVARA'S BLOG", "/"), ("/now", "正在做", "/now"),
+                ("/projects", "个人项目", "/projects"), ("/blog", "技术博客", "/blog"),
+                ("/records", "记录", None), ("/me", "个人", "/me"),
+                ("/articles", "文章", "/articles"), ("/records/media", "书影音", "/records/media"),
+            ]:
                 with self.subTest(path=path):
                     response = client.get(path)
                     self.assertEqual(response.status_code, 200)
-                    self.assertIn("text/html", response.headers["content-type"])
                     self.assertIn(title, response.text)
                     document = PageElements(response.text)
-                    self.assertIn(required_id, document.ids)
-                    page_links = {link["href"] for link in document.links if not link["href"].startswith("#")}
-                    self.assertEqual(page_links, {"/", "/now", "/me", "/articles"} if path == "/" else {"/", "/now", "/me"})
-                    current_links = [link for link in document.links if link.get("aria-current") == "page"]
-                    self.assertEqual(len(current_links), 1)
-                    self.assertEqual(current_links[0]["href"], path)
-                    if path == "/":
-                        self.assertEqual(document.scripts, [])
-                        self.assertNotIn("calendar", document.ids)
-                        self.assertNotIn("current-content", document.ids)
-                    elif path == "/now":
-                        self.assertEqual(document.scripts, ["/static/app.js"])
-                        self.assertTrue({"current-content", "entries", "jump-current"}.issubset(document.ids))
-                    else:
-                        self.assertEqual(document.scripts, ["/static/me-scene.js", "/static/me.js"])
-                        self.assertNotIn('/static/style.css', response.text)
-                        self.assertNotIn("calendar", document.ids)
+                    # The brand and content links are outside the primary navigation.
+                    nav_html = response.text.split('<nav class="site-nav"', 1)[1].split('</nav>', 1)[0]
+                    nav = PageElements(nav_html).links
+                    self.assertEqual([link["href"] for link in nav], paths)
+                    self.assertEqual([link["href"] for link in nav if link.get("aria-current") == "page"], [active] if active else [])
+                    self.assertEqual(document.scripts, page_scripts.get(path, []))
+                    self.assertNotIn("宇宙探索", response.text)
+            records = client.get("/records").text
+            self.assertEqual(records.count('href="/articles"'), 2)
+            self.assertIn('href="/records/media"', records)
+            for path in ("/records/media", "/me"):
+                self.assertIn("还", client.get(path).text)
+            technical_blog = client.get("/blog").text
+            for anchor in ("ai-coding-workflow", "data-structure-as-ai-api"):
+                self.assertIn(f'href="#{anchor}"', technical_blog)
+                self.assertIn(f'<article class="journal-article" id="{anchor}"', technical_blog)
+            self.assertEqual(client.get("/static/technical-blog.css").status_code, 200)
+            self.assertIn("个人足迹", client.get("/me").text)
+            old = client.get("/static/me.html", follow_redirects=False)
+            self.assertEqual(old.status_code, 307)
+            self.assertEqual(old.headers["location"], "/me")
+            self.assertIn("个人足迹", client.get("/static/me.html").text)
             for resource in ("/static/style.css", "/static/app.js", "/static/me.css", "/static/me.js", "/static/me-scene.js"):
                 self.assertEqual(client.get(resource).status_code, 200)
+            for resource in (*page_scripts["/me"], "/static/vendor/leaflet/leaflet.css", "/static/footprints/footprints.css"):
+                self.assertEqual(client.get(resource).status_code, 200)
+            map_config = client.get("/static/footprints/map.json").json()
+            self.assertEqual(map_config["image"]["src"], "/static/footprints/atlas.svg")
+            atlas = client.get(map_config["image"]["src"])
+            self.assertEqual(atlas.status_code, 200)
+            self.assertIn("image/svg+xml", atlas.headers["content-type"])
+            province_ids = {province["id"] for province in map_config["provinces"]}
+            self.assertIn("sc", province_ids)
+            self.assertTrue(all(city["province"] in province_ids for city in map_config["cities"]))
+
+    def test_project_gallery_uses_real_site_examples_and_local_posters(self):
+        with TestClient(app) as client:
+            page = client.get("/projects").text
+            self.assertNotIn("以博客现有栏目为示例", page)
+            links = [
+                link["href"] for link in PageElements(page).links
+                if "project-link" in link.get("class", "").split()
+            ]
+            self.assertEqual(links, ["/", "/now", "/me#footprints-heading", "/records"])
+            for link in links:
+                response = client.get(link)
+                self.assertEqual(response.status_code, 200, link)
+                if "#" in link:
+                    self.assertIn(f'id="{link.split("#", 1)[1]}"', response.text)
+            for asset in ("home", "now", "footprints", "records"):
+                url = f"/static/projects/{asset}.webp"
+                self.assertIn(f'src="{url}"', page)
+                poster = client.get(url)
+                self.assertEqual(poster.status_code, 200, url)
+                self.assertEqual(poster.headers["content-type"], "image/webp")
 
     def test_home_does_not_read_notes(self):
         with patch("app.main.current_note", side_effect=OSError("notes unavailable")), TestClient(app) as client:

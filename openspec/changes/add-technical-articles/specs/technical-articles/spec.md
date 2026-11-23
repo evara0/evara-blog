@@ -14,14 +14,14 @@
 - **THEN** 列表不显示该文章，正文及其资源不可访问
 
 ### Requirement: 浏览文章
-系统 SHALL 在 `/articles` 按日期倒序显示全部已发布文章的标题、摘要、日期及标签，空列表显示空状态。
+系统 SHALL 在 `/blog` 按日期倒序显示全部已发布 Markdown 技术文章的标题、摘要、日期及标签，空列表显示空状态，并保留已有 JSON 技术文章的目录和锚点。`/articles` SHALL 保留文章转盘和原正文地址。
 
 #### Scenario: 浏览列表
 - **WHEN** 读者打开文章列表
 - **THEN** 可通过真实链接进入各文章的独立正文页
 
 ### Requirement: 阅读正文
-系统 SHALL 在 `/articles/<slug>` 提供无需脚本的正文阅读，支持常见 Markdown、表格、代码块、图片及标题目录，原始 HTML 不执行。
+系统 SHALL 在 `/blog/<slug>` 提供无需脚本的正文阅读，支持常见 Markdown、表格、代码块、图片及标题目录，原始 HTML 不执行。
 
 #### Scenario: Markdown 阅读
 - **WHEN** 发布文章包含标题、表格、代码块和相对图片

@@ -1,11 +1,5 @@
-{% extends "base.html" %}
-{% block content %}
 <section class="articles-section" aria-labelledby="articles-heading">
-  <div class="section-heading"><span class="section-index">01 / ARTICLES</span><h1 id="articles-heading">技术文章</h1></div>
+  <div class="section-heading"><h1 id="articles-heading">最新技术文章</h1></div>
   {% include "_article_list.html" %}
-  <a class="column-link all-articles" href="/articles">查看全部文章 <span aria-hidden="true">↗</span></a>
+  <a class="column-link all-articles" href="/blog">查看技术博客 <span aria-hidden="true">↗</span></a>
 </section>
-<section class="home-column" aria-labelledby="now-heading">
-  <span class="section-index">02 / NOW</span><div class="column-content"><h2 id="now-heading">正在做</h2><p>一些按日期留下的记录。看看最近在忙什么。</p><a class="column-link" href="/now">查看正在做 <span aria-hidden="true">↗</span></a></div><span class="column-decoration" aria-hidden="true">↗</span>
-</section>
-{% endblock %}

@@ -1,99 +1,102 @@
-from datetime import date, timedelta
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest import TestCase
 from unittest.mock import patch
-import unittest
 
 from fastapi.testclient import TestClient
 
-from app.articles import image_path, read_article, render_article
 from app.main import app
 
 
-class ArticleTests(unittest.TestCase):
-    def setUp(self):
-        self.temp = TemporaryDirectory()
-        self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
-        self.patcher = patch("app.main.ARTICLES_DIR", self.root)
-        self.patcher.start()
-        self.addCleanup(self.patcher.stop)
-        self.client = TestClient(app)
-        self.addCleanup(self.client.close)
-
-    def write(self, slug, metadata=None, body="正文"):
-        folder = self.root / slug
-        folder.mkdir(exist_ok=True)
-        (folder / "index.md").write_text("---\n" + (metadata or 'title: 文章\ndate: 2020-01-02\nsummary: 摘要\ntags: [Python, 测试]\n') + "---\n" + body, encoding="utf-8")
-        return folder
-
-    def test_empty_refresh_order_and_home_limit(self):
-        self.assertIn("暂无文章", self.client.get("/").text)
-        self.assertIn("暂无文章", self.client.get("/articles").text)
-        for n in range(10):
-            self.write(f"post-{n}", f"title: 第{n}篇\ndate: 2020-01-{n+1:02}\nsummary: 摘要\ntags: []\n")
-        home = self.client.get("/").text
-        listing = self.client.get("/articles").text
-        self.assertIn("第9篇", home)
-        self.assertNotIn("第0篇", home)
-        self.assertLess(listing.index("第9篇"), listing.index("第0篇"))
-        self.write("post-9", "title: 修改后\ndate: 2020-01-10\nsummary: 摘要\ntags: []\n")
-        self.assertIn("修改后", self.client.get("/").text)
-
-    def test_invalid_unpublished_and_missing(self):
-        self.write("valid")
-        self.write("draft", "title: 草稿\ndate: 2020-01-01\nsummary: 摘要\ntags: []\ndraft: true\n")
-        future = (date.today() + timedelta(days=1)).isoformat()
-        self.write("future", f"title: 未来\ndate: {future}\nsummary: 摘要\ntags: []\n")
-        self.write("invalid", "title: 错误\ndate: bad\nsummary: 摘要\ntags: []\n")
-        self.write("bad-draft", "title: 错误\ndate: 2020-01-01\nsummary: 摘要\ntags: []\ndraft: perhaps\n")
-        for slug in ("draft", "future", "invalid", "bad-draft", "missing"):
-            self.assertEqual(self.client.get(f"/articles/{slug}").status_code, 404)
-            self.assertEqual(self.client.get(f"/articles/{slug}/assets/pic.png").status_code, 404)
-        self.assertEqual(self.client.get("/articles/valid").status_code, 200)
-        self.assertNotIn("草稿", self.client.get("/articles").text)
-
-    def test_markdown_and_safe_images(self):
-        folder = self.write("demo", body="# 重复\n\n## 重复\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n```python\nprint(1)\n```\n\n![图](./pic.png)\n\n<script>alert(1)</script>")
-        (folder / "pic.png").write_bytes(b"png data")
-        (folder / "private.txt").write_text("secret", encoding="utf-8")
-        response = self.client.get("/articles/demo")
-        self.assertEqual(response.status_code, 200)
-        for expected in ('id="重复"', 'id="重复-2"', 'href="#重复-2"', '<table>', '<code class="language-python">', '/articles/demo/assets/pic.png', '&lt;script&gt;'):
-            self.assertIn(expected, response.text)
-        self.assertNotIn('<script>alert', response.text)
-        image = self.client.get("/articles/demo/assets/pic.png")
-        self.assertEqual(image.content, b"png data")
-        self.assertEqual(image.headers["content-type"], "image/png")
-        for path in ("private.txt", "index.md", "../private.png", ".hidden.png", "missing.png"):
-            self.assertIsNone(image_path(self.root, "demo", path))
-        self.assertIsNone(read_article(self.root, "../demo"))
-        article = read_article(self.root, "demo")
-        self.assertIsNotNone(article)
-        html, _ = render_article(article)
-        self.assertNotIn('<script>', html)
-
-    def test_metadata_is_escaped(self):
-        self.write("escape", 'title: "<script>bad</script>"\ndate: 2020-01-01\nsummary: "<b>bad</b>"\ntags: ["<tag>"]\n')
-        for path in ("/", "/articles", "/articles/escape"):
-            response = self.client.get(path)
-            self.assertNotIn("<script>bad", response.text)
-            self.assertIn("&lt;script&gt;", response.text)
-
-    def test_resource_traversal_and_symlink_escape(self):
-        folder = self.write("demo", body="![bad](../secret.png)\n\n![good](./nested/pic.png)")
-        (folder / "nested").mkdir()
-        (folder / "nested" / "pic.png").write_bytes(b"image")
-        (self.root / "secret.png").write_bytes(b"secret")
-        self.assertEqual(self.client.get("/articles/demo/assets/nested/pic.png").content, b"image")
-        self.assertEqual(self.client.get("/articles/demo/assets/%2e%2e/secret.png").status_code, 404)
-        self.assertNotIn("secret.png", self.client.get("/articles/demo").text)
-        try:
-            (folder / "link.png").symlink_to(self.root / "secret.png")
-        except OSError:
-            return  # Windows may not grant permission to create symbolic links.
-        self.assertEqual(self.client.get("/articles/demo/assets/link.png").status_code, 404)
+FIXTURES = Path(__file__).parent / "fixtures" / "articles"
 
 
-if __name__ == "__main__":
-    unittest.main()
+class ArticleTests(TestCase):
+    def test_public_default_and_legacy_routes(self):
+        with TestClient(app) as client:
+            response = client.get("/articles")
+            self.assertEqual(response.status_code, 200)
+            article_path = "/articles/pudong-art-museum"
+            self.assertIn(f'href="{article_path}"', response.text)
+            self.assertNotIn("本机验收样例", response.text)
+            reading = client.get(article_path)
+            self.assertEqual(reading.status_code, 200)
+            self.assertIn("浦东美术馆之行--徒劳与行动", reading.text)
+            self.assertIn("wangzi", reading.text)
+            self.assertIn("https://mp.weixin.qq.com/s/XA3ENtpm5UlFx11RC2i10Q", reading.text)
+            for filename in ("cover.jpg", *(f"photo-{index:02}.jpg" for index in range(1, 8))):
+                url = f"/static/articles/pudong-art-museum/{filename}"
+                self.assertIn(f'src="{url}"', reading.text)
+                image = client.get(url)
+                self.assertEqual(image.status_code, 200)
+                self.assertEqual(image.headers["content-type"], "image/jpeg")
+            self.assertEqual(client.get("/articles/morning-streets").status_code, 404)
+            self.assertEqual(client.get("/static/article-preview/morning-streets.webp").status_code, 404)
+            for legacy in ("/records/notes", "/static/record-notes.html"):
+                with self.subTest(legacy=legacy):
+                    redirect = client.get(legacy, follow_redirects=False)
+                    self.assertEqual(redirect.status_code, 308)
+                    self.assertEqual(redirect.headers["location"], "/articles")
+                    self.assertEqual(client.get(legacy).url.path, "/articles")
+
+    def test_populated_directory_and_reading_pages(self):
+        catalog = FIXTURES / "catalog.json"
+        with patch("app.main.ARTICLES_FILE", catalog), patch("app.main.ARTICLES_PREVIEW", True), TestClient(app) as client:
+            directory = client.get("/articles")
+            self.assertEqual(directory.status_code, 200)
+            self.assertIn("本机验收样例", directory.text)
+            self.assertIn("/static/articles/carousel.js", directory.text)
+            self.assertIn("上一篇", directory.text)
+            for entry in json.loads(catalog.read_text(encoding="utf-8")):
+                url = f"/articles/{entry['slug']}"
+                with self.subTest(url=url):
+                    self.assertIn(f'href="{url}"', directory.text)
+                    self.assertIn(entry["summary"], directory.text)
+                    reading = client.get(url)
+                    self.assertEqual(reading.status_code, 200)
+                    self.assertIn(f"<h1>{entry['title']}</h1>", reading.text)
+                    self.assertIn(entry["paragraphs"][0], reading.text)
+                    self.assertIn("本机验收样例", reading.text)
+                    self.assertIn('href="/articles" aria-current="page"', reading.text)
+                    self.assertNotIn("/static/articles/carousel.js", reading.text)
+
+    def test_public_content_refresh_and_html_escaping(self):
+        with TemporaryDirectory() as folder, TestClient(app) as client:
+            catalog = Path(folder) / "catalog.json"
+            payload = {
+                "slug": "first-article",
+                "title": '<b>样例</b>',
+                "summary": "摘要",
+                "cover": "/static/projects/home.webp",
+                "cover_alt": '包含"引号',
+                "paragraphs": ["<img src=x>", "第二段"],
+                "images": [{
+                    "after_paragraph": 1,
+                    "src": "/static/projects/now.webp",
+                    "alt": '正文配图 "A"',
+                    "width": 960,
+                    "height": 540,
+                }],
+            }
+            with patch("app.main.ARTICLES_FILE", catalog):
+                catalog.write_text(json.dumps([payload]), encoding="utf-8")
+                directory = client.get("/articles")
+                self.assertIn("&lt;b&gt;样例&lt;/b&gt;", directory.text)
+                self.assertIn('alt="包含&quot;引号"', directory.text)
+                self.assertNotIn("上一篇", directory.text)
+                self.assertNotIn("本机验收样例", directory.text)
+                reading = client.get("/articles/first-article")
+                self.assertIn("<p>&lt;img src=x&gt;</p>", reading.text)
+                self.assertNotIn("<b>样例</b>", reading.text)
+                self.assertRegex(
+                    reading.text,
+                    r'<p>&lt;img src=x&gt;</p><figure><img src="/static/projects/now.webp" '
+                    r'alt="正文配图 &quot;A&quot;"[^>]+></figure><p>第二段</p>',
+                )
+                payload["images"][0]["after_paragraph"] = 3
+                catalog.write_text(json.dumps([payload]), encoding="utf-8")
+                self.assertEqual(client.get("/articles/first-article").status_code, 503)
+                catalog.write_text("[]", encoding="utf-8")
+                self.assertIn("还没有发布文章", client.get("/articles").text)
+                self.assertEqual(client.get("/articles/first-article").status_code, 404)

@@ -1,134 +1,146 @@
-"""Read and render locally maintained, published articles."""
+"""Read the public article catalog and render its directory and reading views."""
 
-from dataclasses import dataclass
-from datetime import date, datetime
-import logging
+import json
+from collections import defaultdict
+from html import escape
 from pathlib import Path
-import re
-from urllib.parse import quote, unquote, urlsplit
 
-from markdown_it import MarkdownIt
-import yaml
-
-LOG = logging.getLogger(__name__)
-SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
-IMAGE_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp", ".avif": "image/avif"}
+from fastapi import HTTPException
+from pydantic import BaseModel, Field, HttpUrl, model_validator
 
 
-@dataclass(frozen=True)
-class Article:
-    slug: str
-    title: str
-    date: date
-    summary: str
-    tags: list[str]
-    body: str
+STATIC_IMAGE_PATTERN = r"^/static/(?:[a-zA-Z0-9_-]+/)*[a-zA-Z0-9_.-]+\.(?:avif|gif|jpe?g|png|svg|webp)$"
 
 
-def read_article(root: Path, slug: str, today: date | None = None, *, include_body: bool = True) -> Article | None:
-    if not SLUG.fullmatch(slug):
-        return None
-    folder = root / slug
-    path = folder / "index.md"
+class ArticleImage(BaseModel):
+    after_paragraph: int = Field(ge=1)
+    src: str = Field(pattern=STATIC_IMAGE_PATTERN)
+    alt: str = Field(min_length=1)
+    width: int = Field(gt=0)
+    height: int = Field(gt=0)
+
+
+class Article(BaseModel):
+    slug: str = Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    title: str = Field(min_length=1)
+    summary: str = Field(min_length=1)
+    cover: str = Field(pattern=STATIC_IMAGE_PATTERN)
+    cover_alt: str = Field(min_length=1)
+    paragraphs: list[str] = Field(min_length=1)
+    author: str | None = Field(default=None, min_length=1)
+    source_url: HttpUrl | None = None
+    images: list[ArticleImage] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_image_positions(self):
+        if any(image.after_paragraph > len(self.paragraphs) for image in self.images):
+            raise ValueError("article image refers to a missing paragraph")
+        return self
+
+    @property
+    def url(self) -> str:
+        return f"/articles/{self.slug}"
+
+
+def load_articles(path: Path) -> list[Article]:
     try:
-        if folder.is_symlink() or path.is_symlink() or not path.resolve().is_relative_to(root.resolve()):
-            return None
-        with path.open(encoding="utf-8-sig") as source:
-            if source.readline().strip() != "---":
-                raise ValueError("missing front matter")
-            lines = []
-            for line in source:
-                if line.strip() == "---":
-                    break
-                lines.append(line)
-            else:
-                raise ValueError("unclosed front matter")
-            metadata = yaml.safe_load("".join(lines))
-            body = source.read() if include_body else ""
-        if not isinstance(metadata, dict):
-            raise ValueError("front matter must be a mapping")
-        title, summary, tags = (metadata.get(key) for key in ("title", "summary", "tags"))
-        published = metadata.get("date")
-        draft = metadata.get("draft", False)
-        if not all(isinstance(v, str) and v.strip() for v in (title, summary)):
-            raise ValueError("title and summary must be nonempty strings")
-        if not isinstance(tags, list) or not all(isinstance(tag, str) and tag.strip() for tag in tags):
-            raise ValueError("tags must be a list of nonempty strings")
-        if isinstance(published, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", published):
-            published = date.fromisoformat(published)
-        if not isinstance(published, date) or isinstance(published, datetime) or not isinstance(draft, bool):
-            raise ValueError("invalid date or draft")
-        if draft or published > (today or date.today()):
-            return None
-        return Article(slug, title.strip(), published, summary.strip(), [tag.strip() for tag in tags], body)
-    except FileNotFoundError:
-        return None
-    except (OSError, UnicodeError, ValueError, yaml.YAMLError) as exc:
-        LOG.warning("Skipping invalid article %s: %s", slug, exc)
-        return None
+        records = json.loads(path.read_text(encoding="utf-8-sig"))
+        if not isinstance(records, list):
+            raise ValueError("expected an array")
+        articles = [Article.model_validate(record) for record in records]
+        if len({article.slug for article in articles}) != len(articles):
+            raise ValueError("article slugs must be unique")
+        return articles
+    except (OSError, ValueError) as error:
+        raise HTTPException(status_code=503, detail="文章目录暂时无法读取") from error
 
 
-def list_articles(root: Path) -> list[Article]:
-    try:
-        entries = list(root.iterdir())
-    except (FileNotFoundError, NotADirectoryError):
-        return []
-    except OSError as exc:
-        LOG.warning("Cannot read article directory: %s", exc)
-        return []
-    articles = [article for entry in entries if (article := read_article(root, entry.name, include_body=False))]
-    return sorted(articles, key=lambda article: (-article.date.toordinal(), article.slug))
+def cover_image(article: Article) -> str:
+    return f'<img src="{escape(article.cover)}" alt="{escape(article.cover_alt)}" width="960" height="720">'
 
 
-def image_path(root: Path, slug: str, name: str) -> Path | None:
-    if not read_article(root, slug, include_body=False):
-        return None
-    parts = name.split("/")
-    if not parts or any(not part or part in (".", "..") or "\\" in part or ":" in part or part.startswith(".") for part in parts):
-        return None
-    folder = root / slug
-    path = folder
-    try:
-        for part in parts:
-            path = path / part
-            if path.is_symlink():
-                return None
-        if path.suffix.lower() not in IMAGE_TYPES or not path.resolve().is_relative_to(folder.resolve()) or not path.is_file():
-            return None
-    except OSError:
-        return None
-    return path
+def render_directory(articles: list[Article], preview: bool) -> str:
+    label = '<p class="articles-preview">本机验收样例</p>' if preview else ""
+    heading = f'<header class="articles-heading"><h1>文章</h1>{label}</header>'
+    if not articles:
+        return heading + """
+          <div class="articles-empty">
+            <div class="articles-empty-orbit" aria-hidden="true"></div>
+            <p>还没有发布文章。</p>
+          </div>"""
+
+    radial = len(articles) <= 8
+    index = "\n".join(index_item(article, i, len(articles)) for i, article in enumerate(articles))
+    cards = "\n".join(
+        f'<article class="article-card" inert>'
+        f'<div class="article-card-heading"><span class="article-card-number" aria-hidden="true">{i:02d}</span>'
+        f'<h2>{escape(article.title)}</h2></div>'
+        f'<div class="article-card-excerpt"><p>{escape(article.summary)}</p>'
+        f'<a class="article-read" href="{article.url}">阅读文章 <span aria-hidden="true">↗</span></a></div>'
+        f'<figure class="article-cover">{cover_image(article)}</figure></article>'
+        for i, article in enumerate(articles, 1)
+    )
+    fallback = "\n".join(
+        f'<li><a href="{article.url}">{escape(article.title)}</a><p>{escape(article.summary)}</p></li>'
+        for article in articles
+    )
+    controls = """
+            <div class="articles-controls" aria-label="转盘控制">
+              <button type="button" data-step="-1" aria-label="上一篇">←</button>
+              <button type="button" data-step="1" aria-label="下一篇">→</button>
+            </div>""" if len(articles) > 1 else ""
+    return heading + f"""
+          <ul class="articles-fallback">{fallback}</ul>
+          <section class="articles-carousel" aria-label="文章转盘" hidden>
+            <div class="articles-index{' is-radial' if radial else ''}">
+              <div class="articles-index-hub">
+                <h2>目录</h2>
+                <p class="articles-count" aria-hidden="true"></p>
+              </div>
+              <ol>{index}</ol>
+            </div>
+            <div class="articles-visual">
+              <div class="articles-track">{cards}</div>
+              {controls}
+            </div>
+            <p class="articles-status" role="status"></p>
+          </section>"""
 
 
-def render_article(article: Article) -> tuple[str, list[dict]]:
-    md = MarkdownIt("js-default", {"html": False})
-    tokens = md.parse(article.body)
-    toc = []
-    used = set()
-    for index, token in enumerate(tokens):
-        if token.type == "heading_open":
-            inline = tokens[index + 1]
-            label = "".join(child.content for child in inline.children or [] if child.type in ("text", "code_inline", "image"))
-            base = re.sub(r"[^\w-]+", "-", label.lower(), flags=re.UNICODE).strip("-_") or "section"
-            anchor, suffix = base, 2
-            while anchor in used:
-                anchor, suffix = f"{base}-{suffix}", suffix + 1
-            used.add(anchor)
-            token.attrSet("id", anchor)
-            toc.append({"id": anchor, "label": label, "level": int(token.tag[1])})
-        if token.type == "inline":
-            for child in token.children or []:
-                if child.type != "image":
-                    continue
-                src = child.attrGet("src") or ""
-                parsed = urlsplit(src)
-                if not parsed.scheme and not parsed.netloc:
-                    name = unquote(parsed.path)
-                    parts = name.split("/")
-                    while parts and parts[0] == ".":
-                        parts.pop(0)
-                    if not parts or any(not part or part in (".", "..") or "\\" in part or ":" in part or part.startswith(".") for part in parts):
-                        child.attrSet("src", "")
-                    else:
-                        child.attrSet("src", f"/articles/{article.slug}/assets/" + "/".join(quote(part, safe="") for part in parts))
-    return md.renderer.render(tokens, md.options, {}), toc
+def index_item(article: Article, position: int, total: int) -> str:
+    angle = 360 * position / total - 25
+    label_direction = " is-flipped" if 90 < angle < 270 else ""
+    return (
+        f'<li class="articles-spoke{label_direction}" style="--spoke-angle:{angle:g}deg">'
+        f'<button type="button" aria-pressed="false" title="{escape(article.title)}">'
+        f'<span class="articles-index-label"><span aria-hidden="true">{position + 1:02d}</span>'
+        f'<span class="articles-index-title">{escape(article.title)}</span></span></button></li>'
+    )
+
+
+def render_article(article: Article, preview: bool) -> str:
+    label = '<p class="articles-preview">本机验收样例</p>' if preview else ""
+    byline = f'<p class="article-byline">{escape(article.author)}</p>' if article.author else ""
+    source = (
+        f'<p><a href="{escape(str(article.source_url))}">阅读原文 ↗</a></p>'
+        if article.source_url else ""
+    )
+    images_by_paragraph = defaultdict(list)
+    for image in article.images:
+        images_by_paragraph[image.after_paragraph].append(
+            f'<figure><img src="{escape(image.src)}" alt="{escape(image.alt)}" '
+            f'width="{image.width}" height="{image.height}" loading="lazy"></figure>'
+        )
+
+    body = []
+    for number, paragraph in enumerate(article.paragraphs, 1):
+        body.append(f"<p>{escape(paragraph)}</p>")
+        body.extend(images_by_paragraph.get(number, ()))
+
+    return f"""
+          <article class="article-reading">
+            <a class="article-back" href="/articles">← 返回文章目录</a>
+            <header>{label}<h1>{escape(article.title)}</h1>{byline}<p>{escape(article.summary)}</p></header>
+            <figure>{cover_image(article)}</figure>
+            <div class="article-prose">{''.join(body)}{source}</div>
+          </article>"""

@@ -1,0 +1,113 @@
+.footprints {
+  --footprints-ink: #33493e;
+  --footprints-muted: #536359;
+  --footprints-border: #d5d3c4;
+  --footprints-paper: #f7f5ed;
+  --footprints-orange: #b24b27;
+  color: var(--footprints-ink);
+  padding-bottom: 48px;
+}
+
+.footprints-poster, .footprints-detail {
+  background: var(--footprints-paper);
+  border: 1px solid var(--footprints-border);
+  padding: clamp(16px, 4vw, 42px);
+}
+
+.footprints-header, .footprints-toolbar, .footprints-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.footprints-header { align-items: baseline; margin-bottom: 20px; }
+.footprints-header h2 {
+  font-family: 'Songti SC', 'Noto Serif CJK SC', SimSun, serif;
+  font-size: clamp(34px, 6vw, 65px);
+  font-weight: 700;
+  letter-spacing: .06em;
+  line-height: 1.15;
+}
+.footprints-header a { font-size: 14px; text-underline-offset: 4px; }
+.footprints-notice, .footprints-caption { color: var(--footprints-muted); font-size: 13px; }
+.footprints-notice { margin: 12px 0 0; }
+.footprints-status { color: var(--footprints-muted); margin: 0; padding: 16px 0 0; border-top: 1px solid var(--footprints-border); line-height: 1.65; }
+
+.footprints-toolbar { margin-bottom: 12px; }
+.footprints-region, .footprints-zoom { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.footprints-toolbar label { font-size: 13px; }
+.footprints-toolbar button, .footprints-toolbar select {
+  min-height: 44px;
+  padding: 7px 10px;
+  border: 1px solid #a8ad9c;
+  border-radius: 3px;
+  color: inherit;
+  background: #fffcf5;
+  font: inherit;
+  font-size: 14px;
+}
+.footprints-toolbar button, .footprints-toolbar select { cursor: pointer; }
+.footprints-toolbar button:hover { background: #ecece1; }
+.footprints-zoom button { min-width: 44px; font-size: 21px; line-height: 1; }
+
+#footprints-map {
+  width: 100%;
+  height: auto;
+  min-height: 260px;
+  aspect-ratio: 1.58;
+  border: 1px solid var(--footprints-border);
+  background: #f3f3ea;
+  isolation: isolate;
+}
+#footprints-map:focus-visible, .footprints-toolbar select:focus-visible, .footprints-marker:focus-visible {
+  outline: 2px solid var(--footprints-ink);
+  outline-offset: 2px;
+}
+.footprints-caption { margin-top: 11px; line-height: 1.6; }
+.footprints-caption p { margin: 0; }
+.footprints-marker { display: grid; place-items: center; border-radius: 50%; }
+.footprints-marker span {
+  width: 9px;
+  height: 9px;
+  box-sizing: border-box;
+  border: 1px solid var(--footprints-paper);
+  border-radius: 50%;
+  background: #5d7d96;
+  box-shadow: 0 0 0 1px #45637c;
+}
+.footprints-marker:hover span, .footprints-marker:focus-visible span {
+  background: #3d607d;
+}
+.footprints-marker[aria-pressed="true"] span {
+  background: #2b4c68;
+  box-shadow: 0 0 0 1px #2b4c68, 0 0 0 3px var(--footprints-paper), 0 0 0 4px #54748f;
+}
+.leaflet-tooltip.footprints-tooltip { background: #fffcf5; color: var(--footprints-ink); border-color: #a8ad9c; }
+
+.footprints-detail, .footprints-timeline { margin-top: 24px; }
+.footprints-detail h3, .footprints-timeline h3 { font-size: 22px; }
+.footprints-detail h3 { width: fit-content; }
+.footprints-detail h3:focus-visible { outline: 2px solid var(--footprints-ink); outline-offset: 4px; }
+.footprints-timeline { border-top: 1px solid var(--footprints-border); padding-top: 24px; scroll-margin-top: 12px; }
+.footprints-visits { margin: 16px 0 0; list-style: none; padding: 0; }
+.footprints-visits li {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 8px 18px;
+  padding: 16px 0;
+  border-top: 1px solid var(--footprints-border);
+}
+.footprints-visits time { color: var(--footprints-orange); font: 600 13px/1.8 ui-monospace, monospace; }
+.footprints-visits p { margin: 4px 0 0; line-height: 1.65; overflow-wrap: anywhere; }
+.footprints-visits img { display: block; max-width: min(100%, 26rem); max-height: 16rem; object-fit: contain; margin-top: 10px; }
+.footprints-timeline .empty-message { margin: 10px 0 0; }
+
+@media (max-width: 480px) {
+  #footprints-map { aspect-ratio: 1.3; }
+  .footprints-toolbar { gap: 8px 12px; }
+  .footprints-region label { flex-basis: 100%; }
+  .footprints-visits li { grid-template-columns: 1fr; gap: 4px; }
+  .footprints-caption { gap: 4px; }
+}

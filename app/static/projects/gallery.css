@@ -1,0 +1,146 @@
+.project-gallery {
+  padding: clamp(38px, 6vw, 78px) 0 36px;
+}
+
+.project-gallery-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: clamp(22px, 3vw, 36px);
+}
+
+.project-controls {
+  display: flex;
+  flex: none;
+}
+
+.project-controls button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #111;
+  background: #fff;
+  color: #111;
+  font: 22px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.project-controls button + button { border-left: 0; }
+.project-controls button[aria-disabled="true"] { color: #777; cursor: default; }
+.project-controls button:hover:not([aria-disabled="true"]) { background: #111; color: #fff; }
+
+.project-strip {
+  display: flex;
+  gap: clamp(12px, 1.5vw, 20px);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-color: #777 #ededed;
+  scrollbar-width: thin;
+  margin: 0;
+  padding: 0 0 14px;
+  list-style: none;
+}
+
+.project-card {
+  flex: 0 0 min(77vw, 310px);
+  min-width: 0;
+}
+
+.project-card--home { --poster-paper: #f4dbc3; --panel: #a52b1e; --panel-ink: #fff; }
+.project-card--now { --poster-paper: #d8d97a; --panel: #d7db82; --panel-ink: #192213; }
+.project-card--footprints { --poster-paper: #263a84; --panel: #252f72; --panel-ink: #fff; }
+.project-card--records { --poster-paper: #efafbb; --panel: #842345; --panel-ink: #fff; }
+
+.project-cover { position: relative; }
+
+.project-poster {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  padding: 0;
+  border: 0;
+  background: var(--poster-paper);
+  color: #111;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.project-poster:disabled { cursor: default; }
+.project-poster img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.project-description {
+  margin: 0;
+  padding: clamp(18px, 7%, 28px);
+  background: var(--panel);
+  color: var(--panel-ink);
+  font-size: clamp(18px, 1.7vw, 23px);
+  line-height: 1.75;
+  font-weight: 700;
+  font-synthesis: weight;
+  overflow-wrap: anywhere;
+}
+
+[data-interactive] .project-description {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-content: center;
+  pointer-events: none;
+}
+
+[data-interactive] .project-poster[aria-expanded="true"] + .project-description { display: grid; }
+
+.project-toggle {
+  display: none;
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 1;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: #fff;
+  border: 1px solid #111;
+  font: 20px/1 system-ui, sans-serif;
+}
+
+[data-interactive] .project-toggle { display: grid; }
+.project-toggle::before { content: "+"; }
+.project-poster[aria-expanded="true"] .project-toggle::before { content: "−"; }
+
+.project-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 11px 14px;
+  border: 1px solid #111;
+  border-top: 0;
+  font-weight: 700;
+  font-synthesis: weight;
+  text-decoration: none;
+}
+
+.project-link span { font-size: 19px; }
+.project-link:hover, .project-link:focus-visible { background: #111; color: #fff; }
+
+.project-poster:focus-visible, .project-link:focus-visible {
+  position: relative;
+  z-index: 2;
+  outline: 2px solid #111;
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 7px #fff;
+}
+
+/* Draw the poster focus ring above both the artwork and the description. */
+.project-poster:focus-visible { z-index: auto; }
+.project-poster:focus-visible::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 3px;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #111;
+  pointer-events: none;
+}

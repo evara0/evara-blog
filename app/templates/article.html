@@ -2,7 +2,7 @@
 {% block title %}{{ article.title }} · EVARA'S BLOG{% endblock %}
 {% block content %}
 <article class="article-detail">
-  <a class="back-link" href="/articles">← 全部文章</a>
+  <a class="back-link" href="/blog">← 技术博客</a>
   <header class="article-header"><time datetime="{{ article.date.isoformat() }}">{{ article.date.isoformat() }}</time><h1>{{ article.title }}</h1><p>{{ article.summary }}</p>
     {% if article.tags %}<ul class="article-tags" aria-label="标签">{% for tag in article.tags %}<li>{{ tag }}</li>{% endfor %}</ul>{% endif %}
   </header>

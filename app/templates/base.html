@@ -11,9 +11,13 @@
   <header class="blog-header">
     <a class="site-brand" href="/"><span class="brand-mark" aria-hidden="true">//</span><span>EVARA'S BLOG</span></a>
     <nav class="site-nav" aria-label="主导航">
-      <a href="/"{% if current == 'home' %} aria-current="page"{% endif %}>首页</a>
-      <a href="/articles"{% if current == 'articles' %} aria-current="page"{% endif %}>文章</a>
-      <a href="/now">正在做</a><a href="/me">个人</a>
+      <a href="/">首页</a>
+      <a href="/now">正在做</a>
+      <a href="/projects">个人项目</a>
+      <a href="/blog" aria-current="page">技术博客</a>
+      <a href="/records/media">书影音</a>
+      <a href="/articles">文章</a>
+      <a href="/me">个人</a>
     </nav>
   </header>
   <main id="main-content">{% block content %}{% endblock %}</main>
