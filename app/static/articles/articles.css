@@ -1,30 +1,10 @@
-.articles-site {
-  --paper: #fff5f8;
-  --ink: #3b252e;
-  --muted: #654550;
-  --accent: #a32046;
-  --rule: #9c7481;
-  --serif: "Songti SC", "Noto Serif CJK SC", SimSun, Georgia, serif;
-  color: var(--ink);
-  background: linear-gradient(106deg, #f3dbe8 0%, #fae9ef 39%, var(--paper) 80%);
-  min-height: 100vh;
-}
-
-.articles-site .shell { width: min(100% - 64px, 1580px); }
-.articles-site .blog-header {
-  min-height: 66px;
-  gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid #9c748166;
-}
-.articles-site .brand-mark { display: none; }
-.articles-site .site-brand { font: italic 400 21px/1.15 Georgia, serif; }
-.articles-site .site-nav a[aria-current="page"] {
-  color: var(--accent);
-  border-bottom-color: currentColor;
-}
-
 .articles-page {
+  --paper: #fff;
+  --ink: #111;
+  --muted: #555;
+  --accent: #111;
+  --rule: #777;
+  --serif: "Songti SC", "Noto Serif CJK SC", SimSun, Georgia, serif;
   padding-bottom: 32px;
 }
 
@@ -63,8 +43,8 @@
   align-content: center;
   justify-items: center;
   gap: 20px;
-  background: #ead1dd3d;
-  border: 1px solid #9c748177;
+  background: #f7f7f7;
+  border: 1px solid #aaa;
 }
 
 .articles-empty p { color: var(--muted); margin: 0; }
@@ -100,12 +80,19 @@
 .articles-fallback p { color: var(--muted); margin-block: 5px 18px; }
 
 .articles-carousel {
+  --paper: #fff5f8;
+  --ink: #3b252e;
+  --muted: #654550;
+  --accent: #a32046;
+  --rule: #9c7481;
   display: grid;
   grid-template-columns: clamp(292px, 29%, 435px) minmax(0, 1fr);
   grid-template-areas: "index visual";
   align-items: start;
   position: relative;
   padding: 0;
+  color: var(--ink);
+  background: linear-gradient(106deg, #f3dbe8 0%, #fae9ef 39%, var(--paper) 80%);
 }
 
 .articles-index {
@@ -405,8 +392,6 @@
 .article-prose img { max-height: none; }
 
 @media (max-width: 900px) {
-  .articles-site .shell { width: min(100% - 32px, 660px); }
-  .articles-site .blog-header { align-content: start; gap: 10px; }
   .articles-heading { min-height: 77px; padding-bottom: 14px; }
   .articles-carousel {
     grid-template-columns: minmax(0, 1fr);
